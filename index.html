@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORA · Consultation Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ORA CONSULTATION CONSOLE — v2 · clean clinical white
+   ============================================================ */
+:root{
+  --bg:#FFFFFF;
+  --subtle:#F6F7F6;
+  --subtle-2:#FBFCFB;
+  --text:#17201B;
+  --muted:#68726C;
+  --faint:#98A19B;
+  --line:#E5E7E5;
+  --line-strong:#D3D7D3;
+  --green:#0F7A54;
+  --green-dark:#0B5F41;
+  --green-soft:#EDF5F1;
+  --amber:#B96F24;
+  --amber-soft:#FBF3E8;
+  --red:#B04338;
+  --red-soft:#FAEDEB;
+  --ease:cubic-bezier(.25,.6,.3,1);
+  --r-lg:12px; --r-md:9px; --r-sm:7px;
+  --shadow-panel:0 1px 2px rgba(23,32,27,.04);
+  --shadow-pop:0 8px 30px rgba(23,32,27,.12);
+  --font-ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--font-ui);
+  background:var(--bg);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:#D8EBE2}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{
+  outline:2px solid var(--green);outline-offset:1px;border-radius:4px;
+}
+.reveal{opacity:1}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:80;height:56px;
+  display:flex;align-items:center;gap:22px;
+  padding:0 clamp(16px,2.4vw,32px);
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.brand-mark{
+  width:28px;height:28px;border-radius:8px;flex:0 0 auto;
+  background:var(--green);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;
+}
+.brand-name{font-weight:700;font-size:16px;letter-spacing:-.01em;color:var(--text)}
+.brand-sub{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-top:-2px}
+
+.stepper{display:flex;align-items:center;gap:2px;margin:0 auto}
+.step{
+  display:flex;align-items:center;gap:7px;
+  padding:5px 11px;border-radius:6px;
+  font-size:12px;font-weight:500;color:var(--faint);
+  transition:color .25s var(--ease);white-space:nowrap;
+}
+.step .dot{width:6px;height:6px;border-radius:50%;background:var(--line-strong);transition:background .25s var(--ease)}
+.step.active{color:var(--text);font-weight:600}
+.step.active .dot{background:var(--green)}
+.step.done{color:var(--muted)}
+.step.done .dot{background:var(--green);opacity:.45}
+.step-arrow{color:var(--line-strong);font-size:11px;user-select:none}
+
+.topbar-right{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.timer-chip{
+  display:none;align-items:center;gap:7px;
+  padding:5px 11px;border-radius:6px;
+  background:var(--subtle);color:var(--muted);
+  font-family:var(--font-mono);font-size:12px;font-weight:500;
+  border:1px solid var(--line);
+}
+.timer-chip.on{display:flex}
+.timer-chip .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:6px;
+  background:var(--green-soft);color:var(--green-dark);
+  font-size:12px;font-weight:600;
+  border:1px solid #D5E7DD;
+  transition:all .3s var(--ease);
+}
+.status-pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.status-pill.charged{background:var(--amber-soft);color:var(--amber);border-color:#EFDFC8}
+.status-pill.ended{background:var(--subtle);color:var(--muted);border-color:var(--line)}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.shell{
+  max-width:1480px;margin:0 auto;
+  padding:80px clamp(16px,2.4vw,32px) 56px;
+  display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:28px;
+  align-items:start;
+}
+.main-col{min-width:0;display:flex;flex-direction:column;gap:24px}
+
+/* ============================================================
+   PATIENT HEADER
+   ============================================================ */
+.hero{
+  background:var(--bg);
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-panel);
+  padding:22px 24px;
+}
+.hero-top{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.hero-id{min-width:0}
+.hero-eyebrow{
+  font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:6px;
+}
+.patient-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.patient-name{
+  font-weight:700;font-size:24px;line-height:1.2;color:var(--text);letter-spacing:-.015em;
+  border-bottom:1.5px dashed transparent;
+}
+.patient-name[contenteditable="true"]{border-bottom-color:var(--green);outline:none}
+.icon-btn{
+  width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--faint);transition:all .2s var(--ease);flex:0 0 auto;
+}
+.icon-btn:hover{background:var(--subtle);color:var(--text)}
+.icon-btn svg{width:14px;height:14px}
+.meta-row{display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:10px}
+.meta-chip{display:inline-flex;align-items:baseline;gap:6px;font-size:12.5px;color:var(--muted)}
+.meta-chip b{font-family:var(--font-mono);font-weight:500;color:var(--text);font-size:12.5px}
+.meta-chip .k{letter-spacing:.05em;text-transform:uppercase;font-size:10px;font-weight:600;color:var(--faint)}
+.meta-chip.flag{color:var(--amber)}
+.meta-chip.flag b,.meta-chip.flag .k{color:var(--amber)}
+
+.hero-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.ghost-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:var(--r-md);
+  border:1px solid var(--line);background:var(--bg);
+  font-size:12.5px;font-weight:600;color:var(--text);
+  transition:all .2s var(--ease);white-space:nowrap;
+}
+.ghost-btn svg{width:13px;height:13px;color:var(--faint)}
+.ghost-btn:hover{border-color:var(--line-strong);background:var(--subtle-2)}
+.ineligible-group{display:flex;gap:8px;align-items:center}
+.select-wrap{position:relative}
+.select-wrap select{
+  appearance:none;-webkit-appearance:none;
+  padding:8px 30px 8px 12px;border-radius:var(--r-md);
+  border:1px solid var(--line);background:var(--bg);
+  font-size:12.5px;font-weight:500;color:var(--muted);
+  transition:border-color .2s var(--ease);cursor:pointer;max-width:190px;
+}
+.select-wrap select:hover{border-color:var(--line-strong)}
+.select-wrap::after{
+  content:"";position:absolute;right:12px;top:50%;transform:translateY(-70%) rotate(45deg);
+  width:5px;height:5px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);
+  pointer-events:none;
+}
+
+/* ============================================================
+   CLINICAL SNAPSHOT
+   ============================================================ */
+.section-label{
+  display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  margin:2px 2px -12px;
+}
+.section-label h2{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.section-label .hint{font-size:11.5px;color:var(--faint);font-weight:500}
+.snapshot{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.vital-card{
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:14px 16px 13px;box-shadow:var(--shadow-panel);
+  transition:border-color .2s var(--ease);
+}
+.vital-card:hover{border-color:var(--line-strong)}
+.vital-label{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.vital-input-row{display:flex;align-items:baseline;gap:6px}
+.vital-input{
+  width:100%;border:none;background:transparent;
+  font-family:var(--font-mono);font-size:22px;font-weight:500;color:var(--text);
+  padding:0;line-height:1.15;
+}
+.vital-input::placeholder{color:#C6CCC8;font-weight:400}
+.vital-unit{font-size:12px;font-weight:500;color:var(--faint);flex:0 0 auto}
+.vital-select{
+  width:100%;border:none;background:transparent;appearance:none;-webkit-appearance:none;
+  font-size:15px;font-weight:600;color:var(--text);padding:2px 0;cursor:pointer;
+}
+.bmi-value{font-family:var(--font-mono);font-size:22px;font-weight:500;color:var(--text);line-height:1.15;min-height:26px}
+.bmi-value .empty{color:#C6CCC8;font-weight:400}
+.bmi-class{font-size:11.5px;font-weight:600;margin-top:2px}
+.bmi-track{
+  height:3px;border-radius:3px;margin-top:9px;position:relative;
+  background:var(--line);opacity:.7;transition:opacity .3s var(--ease);
+}
+.bmi-track.live{opacity:1}
+.bmi-marker{
+  position:absolute;top:50%;left:0;width:9px;height:9px;border-radius:50%;
+  background:var(--text);border:2px solid #fff;box-shadow:0 0 0 1px var(--line-strong);
+  transform:translate(-50%,-50%) scale(0);
+  transition:left .5s var(--ease),transform .3s var(--ease);
+}
+.bmi-track.live .bmi-marker{transform:translate(-50%,-50%) scale(1)}
+
+.cond-strip{
+  grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:12px 16px;box-shadow:var(--shadow-panel);
+}
+.cond-strip .vital-label{margin:0;flex:0 0 auto}
+.cond-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:6px;
+  background:var(--subtle);border:1px solid var(--line);
+  font-size:12px;font-weight:500;color:var(--text);
+}
+.cond-chip button{display:flex;color:var(--faint);transition:color .2s}
+.cond-chip button:hover{color:var(--red)}
+.cond-chip svg{width:10px;height:10px}
+.add-cond{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 11px;border-radius:6px;border:1px dashed var(--line-strong);
+  font-size:12px;font-weight:500;color:var(--muted);
+  transition:all .2s var(--ease);
+}
+.add-cond:hover{border-color:var(--green);color:var(--green)}
+.add-cond svg{width:11px;height:11px}
+.cond-input{
+  display:none;padding:4px 11px;border-radius:6px;border:1px solid var(--green);
+  font-size:12px;width:190px;background:var(--bg);
+}
+.cond-input.on{display:block}
+
+/* records */
+.records{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.record-card{
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:16px 18px;box-shadow:var(--shadow-panel);
+  display:flex;flex-direction:column;gap:11px;min-height:110px;
+}
+.record-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.record-head h3{font-size:13px;font-weight:700;color:var(--text)}
+.record-empty{
+  flex:1;display:flex;align-items:center;gap:9px;
+  color:var(--faint);font-size:12.5px;font-weight:500;
+  border:1px dashed var(--line);border-radius:var(--r-md);padding:10px 13px;
+}
+.record-empty svg{width:14px;height:14px;opacity:.7;flex:0 0 auto}
+.record-list{display:flex;flex-direction:column;gap:6px}
+.record-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--subtle-2);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:8px 12px;font-size:12.5px;font-weight:500;color:var(--text);
+}
+.record-item span{font-family:var(--font-mono);font-size:11px;color:var(--faint)}
+.mini-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:var(--r-md);
+  border:1px solid var(--line);background:var(--bg);color:var(--text);
+  font-size:12px;font-weight:600;
+  transition:all .2s var(--ease);white-space:nowrap;
+}
+.mini-btn svg{width:11px;height:11px;color:var(--faint)}
+.mini-btn:hover{border-color:var(--line-strong);background:var(--subtle-2)}
+
+/* ============================================================
+   FORMULARY
+   ============================================================ */
+.catalog-toolbar{
+  position:sticky;top:56px;z-index:40;
+  display:flex;flex-direction:column;gap:10px;
+  padding:14px 0 12px;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  margin-bottom:2px;
+}
+.toolbar-row{display:flex;gap:10px;align-items:center}
+.search-wrap{position:relative;flex:1;max-width:420px}
+.search-wrap svg{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;color:var(--faint);pointer-events:none;
+}
+.search-input{
+  width:100%;padding:9px 60px 9px 36px;border-radius:var(--r-md);
+  border:1px solid var(--line);background:var(--bg);
+  font-size:13px;
+  transition:border-color .2s var(--ease);
+}
+.search-input::placeholder{color:var(--faint)}
+.search-input:focus{border-color:var(--green);outline:none}
+.kbd-hint{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;gap:4px;pointer-events:none}
+.kbd{
+  font-family:var(--font-mono);font-size:10px;color:var(--faint);
+  background:var(--subtle);border:1px solid var(--line);
+  border-radius:4px;padding:1px 5px;
+}
+.seg{display:flex;padding:3px;border-radius:var(--r-md);background:var(--subtle);gap:2px;border:1px solid var(--line)}
+.seg button{
+  padding:5px 13px;border-radius:6px;font-size:12px;font-weight:600;color:var(--muted);
+  transition:all .2s var(--ease);
+}
+.seg button.on{background:var(--bg);color:var(--text);box-shadow:0 1px 2px rgba(23,32,27,.08)}
+.cat-rail{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.cat-rail::-webkit-scrollbar{display:none}
+.cat-pill{
+  display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;
+  padding:6px 12px;border-radius:6px;
+  border:1px solid var(--line);background:var(--bg);
+  font-size:12px;font-weight:500;color:var(--muted);
+  transition:all .2s var(--ease);
+}
+.cat-pill .swatch{display:none}
+.cat-pill .n{font-family:var(--font-mono);font-size:10.5px;color:var(--faint)}
+.cat-pill:hover{border-color:var(--line-strong)}
+.cat-pill.on{background:var(--green-soft);border-color:#C9E0D4;color:var(--green-dark);font-weight:600}
+.cat-pill.on .n{color:var(--green)}
+
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:12px}
+.p-card{
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:16px;box-shadow:var(--shadow-panel);
+  display:flex;flex-direction:column;gap:10px;
+  transition:border-color .2s var(--ease);
+}
+.p-card:hover{border-color:var(--line-strong)}
+.p-head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.p-disc{display:none}
+.p-title-wrap{min-width:0;flex:1;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.p-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.35;letter-spacing:-.005em}
+.p-badges{display:flex;gap:5px;flex:0 0 auto;padding-top:1px}
+.type-badge{
+  font-size:10px;font-weight:700;letter-spacing:.04em;
+  padding:2px 7px;border-radius:5px;
+}
+.type-badge.rx{background:var(--green-soft);color:var(--green-dark)}
+.type-badge.nrx{background:var(--subtle);color:var(--muted)}
+.in-plan-badge{
+  font-size:10px;font-weight:600;
+  padding:2px 7px;border-radius:5px;
+  background:var(--text);color:#fff;
+}
+.p-desc{font-size:12.5px;color:var(--muted);line-height:1.5}
+.p-details{border-top:1px solid var(--line);padding-top:8px;margin-top:auto}
+.p-details summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;color:var(--faint);
+  transition:color .2s var(--ease);user-select:none;
+}
+.p-details summary::-webkit-details-marker{display:none}
+.p-details summary:hover{color:var(--green)}
+.p-details summary svg{width:10px;height:10px;transition:transform .25s var(--ease)}
+.p-details[open] summary svg{transform:rotate(180deg)}
+.p-details-body{font-size:12px;color:var(--muted);padding-top:7px;line-height:1.55}
+.p-details-body b{color:var(--text);font-weight:600}
+.sku-list{display:flex;flex-direction:column;gap:5px}
+.sku-row{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  width:100%;text-align:left;
+  padding:8px 11px;border-radius:var(--r-md);
+  border:1px solid var(--line);background:var(--bg);
+  transition:all .18s var(--ease);
+}
+.sku-row:hover{border-color:var(--green);background:var(--green-soft)}
+.sku-row:disabled{opacity:.45;cursor:not-allowed}
+.sku-info{min-width:0}
+.sku-cad{font-size:12px;font-weight:600;color:var(--text)}
+.sku-code{font-family:var(--font-mono);font-size:9.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sku-right{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.sku-price{font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--text)}
+.sku-add{
+  width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  background:var(--subtle);color:var(--muted);border:1px solid var(--line);
+  font-size:13px;font-weight:600;transition:all .18s var(--ease);
+}
+.sku-row:hover .sku-add{background:var(--green);border-color:var(--green);color:#fff}
+.no-results{grid-column:1/-1;text-align:center;padding:52px 20px;color:var(--faint);font-size:13px}
+.no-results b{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-bottom:4px}
+
+/* ============================================================
+   TREATMENT PLAN PANEL
+   ============================================================ */
+.plan-col{position:sticky;top:76px;min-width:0}
+.plan{
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow-panel);
+  display:flex;flex-direction:column;
+  max-height:calc(100vh - 96px);
+}
+.plan-head{padding:18px 18px 0}
+.plan-head-row{display:flex;align-items:center;justify-content:space-between}
+.plan-title{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.plan-count{
+  font-family:var(--font-mono);font-size:11px;color:var(--muted);
+  background:var(--subtle);border:1px solid var(--line);
+  padding:3px 9px;border-radius:6px;
+}
+.plan-steps{display:flex;gap:4px;margin-top:13px}
+.plan-step{flex:1;display:flex;flex-direction:column;gap:5px}
+.plan-step .bar{height:2.5px;border-radius:3px;background:var(--line);overflow:hidden;position:relative}
+.plan-step .bar::after{
+  content:"";position:absolute;inset:0;background:var(--green);border-radius:inherit;
+  transform:scaleX(0);transform-origin:left;transition:transform .5s var(--ease);
+}
+.plan-step.done .bar::after{transform:scaleX(1)}
+.plan-step small{font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);transition:color .3s var(--ease)}
+.plan-step.done small{color:var(--green)}
+.plan-body{
+  flex:1;overflow-y:auto;padding:14px 18px;
+  display:flex;flex-direction:column;gap:7px;
+  scrollbar-width:thin;
+}
+.plan-empty{
+  border:1px dashed var(--line-strong);border-radius:var(--r-md);
+  padding:26px 16px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.plan-empty p{font-size:12.5px;color:var(--faint);line-height:1.5}
+.plan-item{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:10px 12px;
+  display:flex;align-items:center;gap:10px;
+  animation:itemIn .3s var(--ease);
+}
+@keyframes itemIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.plan-item.removing{transition:all .25s var(--ease);opacity:0}
+.plan-item-info{flex:1;min-width:0}
+.plan-item-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3}
+.plan-item-cad{font-family:var(--font-mono);font-size:10px;color:var(--faint);margin-top:1px}
+.qty-ctrl{display:flex;align-items:center;gap:1px;flex:0 0 auto}
+.qty-btn{
+  width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  background:var(--subtle);color:var(--muted);font-size:12px;font-weight:600;
+  border:1px solid var(--line);transition:all .18s var(--ease);
+}
+.qty-btn:hover{border-color:var(--green);color:var(--green)}
+.qty-n{font-family:var(--font-mono);font-size:12px;min-width:20px;text-align:center;color:var(--text)}
+.plan-item-price{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text);flex:0 0 auto;min-width:58px;text-align:right}
+.plan-note{margin-top:2px}
+.plan-note textarea{
+  width:100%;min-height:50px;resize:vertical;
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:9px 12px;
+  font-size:12px;color:var(--text);line-height:1.5;
+  transition:border-color .2s var(--ease);
+}
+.plan-note textarea::placeholder{color:var(--faint)}
+.plan-note textarea:focus{border-color:var(--green);outline:none}
+.plan-foot{
+  padding:13px 18px 16px;
+  border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:8px;
+}
+.total-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
+.total-row .lbl{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.total-val{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--text)}
+.total-val .cur{font-size:13px;color:var(--muted);margin-right:2px}
+.action-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 14px;border-radius:var(--r-md);
+  font-size:12.5px;font-weight:600;
+  transition:all .2s var(--ease);
+  position:relative;overflow:hidden;
+  border:1px solid transparent;
+}
+.action-btn svg{width:14px;height:14px;flex:0 0 auto}
+.action-btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-create{background:var(--green);color:#fff}
+.btn-create:not(:disabled):hover{background:var(--green-dark)}
+.btn-create.created{background:var(--green-soft);color:var(--green-dark);border-color:#C9E0D4}
+.btn-charge{background:var(--bg);color:var(--amber);border-color:#E8D5BC}
+.btn-charge:not(:disabled):hover{background:var(--amber-soft)}
+.btn-notify{background:var(--bg);color:var(--text);border-color:var(--line)}
+.btn-notify:not(:disabled):hover{border-color:var(--line-strong);background:var(--subtle-2)}
+.action-split{display:flex;gap:8px}
+.btn-call{flex:1;background:var(--bg);color:var(--green-dark);border-color:var(--line);padding:9px 10px;font-size:11.5px}
+.btn-call:not(:disabled):hover{border-color:var(--green);background:var(--green-soft)}
+.btn-end{
+  flex:1;background:var(--bg);color:var(--red);border-color:#E9CFCB;
+  padding:9px 10px;font-size:11.5px;position:relative;
+}
+.btn-end .hold-ring{
+  position:absolute;inset:0;border-radius:inherit;
+  background:var(--red-soft);
+  transform:scaleX(0);transform-origin:left;transition:none;
+}
+.btn-end.holding .hold-ring{transform:scaleX(1);transition:transform 1.1s linear}
+.btn-end span{position:relative;z-index:1}
+.btn-end:not(:disabled):hover{background:var(--red-soft)}
+
+.log{margin-top:4px;border-top:1px solid var(--line);padding-top:10px}
+.log-title{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.log-list{display:flex;flex-direction:column;max-height:120px;overflow-y:auto;scrollbar-width:thin}
+.log-item{display:flex;gap:9px;font-size:11px;position:relative;padding:0 0 9px 13px}
+.log-item::before{
+  content:"";position:absolute;left:1px;top:5px;width:5px;height:5px;border-radius:50%;
+  background:var(--green);
+}
+.log-item::after{
+  content:"";position:absolute;left:3px;top:13px;bottom:0;width:1px;background:var(--line);
+}
+.log-item:last-child::after{display:none}
+.log-item.warn::before{background:var(--amber)}
+.log-item.danger::before{background:var(--red)}
+.log-text{color:var(--muted);font-weight:500;flex:1}
+.log-time{font-family:var(--font-mono);font-size:9.5px;color:var(--faint);flex:0 0 auto;padding-top:1px}
+
+/* ============================================================
+   TOASTS · PALETTE · DIALOG
+   ============================================================ */
+.toast-root{position:fixed;bottom:20px;left:20px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg);color:var(--text);
+  padding:10px 15px;border-radius:var(--r-md);
+  font-size:12.5px;font-weight:500;
+  box-shadow:var(--shadow-pop);
+  border:1px solid var(--line);
+  animation:toastIn .3s var(--ease);
+  max-width:330px;
+}
+.toast.out{transition:all .3s var(--ease);opacity:0;transform:translateY(8px)}
+.toast .t-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:0 0 auto}
+.toast.amber .t-dot{background:var(--amber)}
+.toast.red .t-dot{background:var(--red)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes chipIn{from{opacity:0}to{opacity:1}}
+.fly-dot{display:none}
+
+.palette-overlay{
+  position:fixed;inset:0;z-index:150;
+  background:rgba(23,32,27,.32);
+  display:none;align-items:flex-start;justify-content:center;padding-top:14vh;
+  opacity:0;transition:opacity .25s var(--ease);
+}
+.palette-overlay.open{display:flex}
+.palette-overlay.vis{opacity:1}
+.palette{
+  width:min(540px,92vw);
+  background:var(--bg);border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--shadow-pop);
+  border:1px solid var(--line);
+  transform:translateY(8px);transition:transform .25s var(--ease);
+}
+.palette-overlay.vis .palette{transform:none}
+.palette-input{
+  width:100%;padding:15px 18px;border:none;border-bottom:1px solid var(--line);
+  font-size:14.5px;background:transparent;
+}
+.palette-input:focus{outline:none}
+.palette-results{max-height:300px;overflow-y:auto;padding:6px}
+.palette-row{
+  width:100%;display:flex;align-items:center;gap:11px;text-align:left;
+  padding:9px 12px;border-radius:var(--r-md);
+  transition:background .15s var(--ease);
+}
+.palette-row:hover,.palette-row.sel{background:var(--green-soft)}
+.palette-row .p-disc{display:none}
+.palette-row-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.palette-row-price{font-family:var(--font-mono);font-size:11.5px;color:var(--muted)}
+.palette-foot{
+  padding:8px 16px;border-top:1px solid var(--line);
+  display:flex;gap:14px;font-size:10.5px;color:var(--faint);
+}
+.dialog-overlay{
+  position:fixed;inset:0;z-index:180;background:rgba(23,32,27,.36);
+  display:none;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .25s var(--ease);
+}
+.dialog-overlay.open{display:flex}
+.dialog-overlay.vis{opacity:1}
+.dialog{
+  width:min(400px,90vw);background:var(--bg);border-radius:var(--r-lg);
+  padding:24px;box-shadow:var(--shadow-pop);border:1px solid var(--line);
+  transform:translateY(8px);transition:transform .3s var(--ease);
+  text-align:center;
+}
+.dialog-overlay.vis .dialog{transform:none}
+.dialog h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.dialog p{font-size:12.5px;color:var(--muted);line-height:1.55}
+.dialog .big{font-family:var(--font-mono);font-size:26px;font-weight:600;color:var(--text);margin:12px 0 14px}
+.dialog-actions{display:flex;gap:8px;margin-top:8px}
+.dialog-actions button{flex:1;padding:10px;border-radius:var(--r-md);font-size:12.5px;font-weight:600;transition:all .2s var(--ease)}
+.dlg-cancel{background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.dlg-cancel:hover{border-color:var(--line-strong)}
+.dlg-confirm{background:var(--amber);color:#fff;border:1px solid var(--amber)}
+.dlg-confirm:hover{background:#A86015}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1180px){
+  .shell{grid-template-columns:minmax(0,1fr) 336px}
+  .snapshot{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:1020px){
+  .stepper{display:none}
+  .shell{grid-template-columns:1fr;padding-bottom:120px}
+  .plan-col{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:90;padding:0 10px 10px}
+  .plan{max-height:72vh;transform:translateY(calc(100% - 72px));transition:transform .4s var(--ease);box-shadow:0 -6px 30px rgba(23,32,27,.14)}
+  .plan.expanded{transform:none}
+  .plan-head{cursor:pointer}
+  .plan-grab{display:block!important}
+  .records{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .snapshot{grid-template-columns:repeat(2,1fr)}
+  .hero-actions{align-items:stretch;width:100%}
+  .toolbar-row{flex-wrap:wrap}
+  .product-grid{grid-template-columns:1fr}
+}
+.plan-grab{display:none;width:36px;height:4px;border-radius:4px;background:var(--line-strong);margin:8px auto 0}
+
+/* ============================================================
+   CURSOR-AWARE AMBIENT GLOW
+   — sits behind the white cards, tints the page gutters only.
+   Hue = the zone under the cursor (positional cue).
+   ============================================================ */
+body{background:#FBFBFA}
+.glow{
+  position:fixed;left:0;top:0;z-index:-1;
+  width:1240px;height:1240px;border-radius:50%;
+  pointer-events:none;
+  will-change:transform;
+  transform:translate(-2000px,-2000px);
+}
+@media (prefers-reduced-motion:reduce),(hover:none){
+  .glow{position:absolute;transform:none;left:50%;top:-420px;margin-left:-520px;
+    background:radial-gradient(circle, rgba(15,122,84,.07) 0%, rgba(15,122,84,0) 60%)!important}
+}
+
+/* product thumbnails (extracted from source PDF) */
+.p-title-wrap{display:block}
+.p-thumb{
+  width:46px;height:46px;border-radius:9px;flex:0 0 auto;
+  border:1px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.p-thumb img{width:100%;height:100%;object-fit:contain}
+.p-thumb span{font-size:15px;font-weight:600;color:var(--faint)}
+.palette-thumb{
+  width:32px;height:32px;border-radius:7px;flex:0 0 auto;
+  border:1px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.palette-thumb img{width:100%;height:100%;object-fit:contain}
+.palette-thumb span{font-size:12px;font-weight:600;color:var(--faint)}
+
+
+/* ============================================================
+   SECTION HUES — quiet tints matching the glow zone colours
+   ============================================================ */
+.hero{background:#F7FBF9;border-color:#DDE9E2}
+.vital-card,.cond-strip{background:#F5FAF9;border-color:#DCE8E6}
+.vital-card:hover{border-color:#C8DBD8}
+.record-card{background:#F9F8FC;border-color:#E4E1F0}
+.plan{background:#F8FBF9;border-color:#DCE7E0}
+.plan-item{background:#FFFFFF}
+.plan-note textarea{background:#FFFFFF}
+.plan-empty{background:rgba(255,255,255,.5)}
+.sku-row{background:#FFFFFF}
+.p-thumb{background:#FFFFFF}
+/* formulary cards tinted by category */
+.p-card.cat-bc{background:#FCF6F8;border-color:#F0E2E8}
+.p-card.cat-bc:hover{border-color:#E3CCD5}
+.p-card.cat-ec{background:#FDF8F1;border-color:#F1E4D2}
+.p-card.cat-ec:hover{border-color:#E5D2B5}
+.p-card.cat-wl{background:#F4F8FA;border-color:#DEE9EE}
+.p-card.cat-wl:hover{border-color:#C8DBE4}
+.p-card.cat-supp{background:#F6FAF5;border-color:#E0EBDE}
+.p-card.cat-supp:hover{border-color:#CCDFC9}
+.p-card.cat-gen{background:#F8F7FC;border-color:#E5E1F1}
+.p-card.cat-gen:hover{border-color:#D3CDE7}
+.p-card.cat-retail{background:#FBFAF2;border-color:#EBE7D3}
+.p-card.cat-retail:hover{border-color:#DDD7B8}
+.p-card.cat-admin{background:#F7F8F7;border-color:#E3E5E3}
+.p-card.cat-admin:hover{border-color:#D0D4D0}
+/* category pills pick up their swatch again */
+.cat-pill .swatch{display:inline-block;width:8px;height:8px;border-radius:50%}
+
+</style>
+</head>
+<body>
+<div class="glow" id="glow" aria-hidden="true"></div>
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">o</div>
+    <div>
+      <div class="brand-name">ora</div>
+      <div class="brand-sub">Consult Console</div>
+    </div>
+  </div>
+
+  <nav class="stepper" aria-label="Consultation workflow">
+    <div class="step done" data-step="review"><span class="dot"></span>Review</div>
+    <span class="step-arrow">›</span>
+    <div class="step active" data-step="consult"><span class="dot"></span>Consult</div>
+    <span class="step-arrow">›</span>
+    <div class="step" data-step="plan"><span class="dot"></span>Plan</div>
+    <span class="step-arrow">›</span>
+    <div class="step" data-step="charge"><span class="dot"></span>Charge</div>
+    <span class="step-arrow">›</span>
+    <div class="step" data-step="close"><span class="dot"></span>Close</div>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="timer-chip" id="timerChip"><span class="pulse"></span><span id="timerVal">00:00</span></div>
+    <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">Registered</span></div>
+  </div>
+</header>
+
+<div class="shell">
+  <main class="main-col">
+
+    <!-- ================= PATIENT HERO ================= -->
+    <section class="hero reveal in" aria-label="Consultation details">
+      <div class="hero-top">
+        <div class="hero-id">
+          <div class="hero-eyebrow">Consultation · OVA-SG</div>
+          <div class="patient-name-row">
+            <h1 class="patient-name" id="patientName">Shubham S</h1>
+            <button class="icon-btn" id="editNameBtn" title="Edit patient name" aria-label="Edit patient name">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            </button>
+            <button class="icon-btn" id="nameHistoryBtn" title="Name change history" aria-label="Name change history">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 3"/></svg>
+            </button>
+          </div>
+          <div class="meta-row">
+            <span class="meta-chip"><span class="k">NRIC</span><b>AD2</b></span>
+            <span class="meta-chip"><span class="k">Order</span><b>#198999</b></span>
+            <span class="meta-chip"><span class="k">Booked via</span><b>Web</b></span>
+            <span class="meta-chip flag" id="noShowFlag"><span class="k">⚑ Flag</span><b>No-show · Jul 3, 4:51 PM</b></span>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button class="ghost-btn" id="activityBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            View user activity
+          </button>
+          <button class="ghost-btn" id="newMcBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
+            New medical certificate
+          </button>
+          <div class="ineligible-group">
+            <div class="select-wrap">
+              <select id="ineligibleReason" aria-label="Ineligibility reason">
+                <option value="">Ineligibility reason…</option>
+                <option>Contraindicated medication</option>
+                <option>Outside age criteria</option>
+                <option>BMI outside range</option>
+                <option>Pregnancy / breastfeeding</option>
+                <option>Existing condition conflict</option>
+                <option>Failed identity check</option>
+              </select>
+            </div>
+            <button class="ghost-btn" id="ineligibleBtn" style="border-color:rgba(184,69,60,.3);color:var(--red)">Mark ineligible</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CLINICAL SNAPSHOT ================= -->
+    <div class="section-label reveal">
+      <h2>Clinical snapshot</h2>
+      <span class="hint">Biometrics auto-save · BMI computed live</span>
+    </div>
+    <section class="snapshot reveal" aria-label="Patient biometrics">
+      <div class="vital-card">
+        <div class="vital-label">Height</div>
+        <div class="vital-input-row">
+          <input class="vital-input" id="heightIn" type="number" inputmode="decimal" placeholder="—" min="80" max="250" aria-label="Height in centimetres">
+          <span class="vital-unit">cm</span>
+        </div>
+      </div>
+      <div class="vital-card">
+        <div class="vital-label">Weight</div>
+        <div class="vital-input-row">
+          <input class="vital-input" id="weightIn" type="number" inputmode="decimal" placeholder="—" min="20" max="400" aria-label="Weight in kilograms">
+          <span class="vital-unit">kg</span>
+        </div>
+      </div>
+      <div class="vital-card">
+        <div class="vital-label">BMI <span id="bmiTag" style="letter-spacing:0;text-transform:none"></span></div>
+        <div class="bmi-value" id="bmiVal"><span class="empty">—</span></div>
+        <div class="bmi-class" id="bmiClass">&nbsp;</div>
+        <div class="bmi-track" id="bmiTrack"><div class="bmi-marker" id="bmiMarker"></div></div>
+      </div>
+      <div class="vital-card">
+        <div class="vital-label">Ethnicity</div>
+        <select class="vital-select" id="ethnicity" aria-label="Ethnicity">
+          <option selected>Asian</option>
+          <option>Chinese</option>
+          <option>Malay</option>
+          <option>Indian</option>
+          <option>Eurasian</option>
+          <option>Caucasian</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="cond-strip">
+        <div class="vital-label">Medical conditions</div>
+        <div id="condChips" style="display:contents"></div>
+        <input class="cond-input" id="condInput" placeholder="Type condition, press Enter" aria-label="Add medical condition">
+        <button class="add-cond" id="addCondBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Add condition
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= RECORDS ================= -->
+    <section class="records reveal" aria-label="Certificates and prescriptions">
+      <div class="record-card">
+        <div class="record-head">
+          <h3>Medical certificates</h3>
+          <button class="mini-btn" id="mcBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            New MC
+          </button>
+        </div>
+        <div class="record-list" id="mcList"></div>
+        <div class="record-empty" id="mcEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          No certificates issued for this consultation
+        </div>
+      </div>
+      <div class="record-card">
+        <div class="record-head">
+          <h3>Prescription history</h3>
+          <button class="mini-btn" id="manualRxBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Manual Rx
+          </button>
+        </div>
+        <div class="record-list" id="rxList"></div>
+        <div class="record-empty" id="rxEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>
+          No existing prescriptions on record
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FORMULARY ================= -->
+    <div class="section-label reveal" style="margin-top:14px">
+      <h2>Formulary <span style="font-family:var(--font-mono);font-size:12px;color:var(--faint);font-weight:500" id="formularyCount"></span></h2>
+      <span class="hint">Press <span class="kbd">/</span> to search · <span class="kbd">⌘K</span> quick add</span>
+    </div>
+
+    <div class="catalog-toolbar">
+      <div class="toolbar-row">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+          <input class="search-input" id="searchIn" placeholder="Search products, SKUs, conditions…" aria-label="Search formulary">
+          <div class="kbd-hint"><span class="kbd">/</span></div>
+        </div>
+        <div class="seg" id="typeSeg" role="group" aria-label="Filter by product type">
+          <button class="on" data-type="all">All</button>
+          <button data-type="Rx">Rx</button>
+          <button data-type="nRx">nRx</button>
+        </div>
+      </div>
+      <div class="cat-rail" id="catRail"></div>
+    </div>
+
+    <section class="product-grid" id="productGrid" aria-label="Product catalog"></section>
+  </main>
+
+  <!-- ================= TREATMENT PLAN ================= -->
+  <aside class="plan-col">
+    <div class="plan" id="planPanel">
+      <div class="plan-grab" aria-hidden="true"></div>
+      <div class="plan-head" id="planHead">
+        <div class="plan-head-row">
+          <h2 class="plan-title">Treatment plan</h2>
+          <span class="plan-count" id="planCount">0 items</span>
+        </div>
+        <div class="plan-steps" aria-label="Plan progress">
+          <div class="plan-step" id="ps-build"><div class="bar"></div><small>Build</small></div>
+          <div class="plan-step" id="ps-create"><div class="bar"></div><small>Create</small></div>
+          <div class="plan-step" id="ps-charge"><div class="bar"></div><small>Charge</small></div>
+          <div class="plan-step" id="ps-notify"><div class="bar"></div><small>Notify</small></div>
+        </div>
+      </div>
+      <div class="plan-body" id="planBody">
+        <div class="plan-empty" id="planEmpty">
+          <p>Select a dose &amp; cadence from the formulary<br>to begin building this patient's plan</p>
+        </div>
+        <div id="planItems" style="display:contents"></div>
+        <div class="plan-note">
+          <textarea id="planNote" placeholder="Plan notes — or reason for ending consultation without a plan…"></textarea>
+        </div>
+      </div>
+      <div class="plan-foot">
+        <div class="total-row">
+          <span class="lbl">Total</span>
+          <span class="total-val" id="totalVal"><span class="cur">S$</span>0.00</span>
+        </div>
+        <button class="action-btn btn-create" id="createBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+          <span>Create plan</span>
+        </button>
+        <button class="action-btn btn-charge" id="chargeBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          <span>Charge treatment plan</span>
+        </button>
+        <button class="action-btn btn-notify" id="notifyBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          <span>Send plan · Email / WhatsApp</span>
+        </button>
+        <div class="action-split">
+          <button class="action-btn btn-call" id="callBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>Log call start</span>
+          </button>
+          <button class="action-btn btn-end" id="endBtn">
+            <div class="hold-ring"></div>
+            <span>Hold to end consult</span>
+          </button>
+        </div>
+        <div class="log">
+          <div class="log-title">Session log</div>
+          <div class="log-list" id="logList"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- overlays -->
+<div class="toast-root" id="toastRoot" aria-live="polite"></div>
+<div class="palette-overlay" id="paletteOverlay">
+  <div class="palette" role="dialog" aria-label="Quick add product">
+    <input class="palette-input" id="paletteInput" placeholder="Quick add — type a product name…">
+    <div class="palette-results" id="paletteResults"></div>
+    <div class="palette-foot"><span>↑↓ navigate</span><span>↵ add first SKU</span><span>esc close</span></div>
+  </div>
+</div>
+<div class="dialog-overlay" id="chargeDialog">
+  <div class="dialog" role="alertdialog" aria-label="Confirm charge">
+    <h3>Charge this plan?</h3>
+    <p>Payment will be collected from the patient's stored method. This action is <b>irreversible</b>.</p>
+    <div class="big" id="chargeAmount">S$0.00</div>
+    <div class="dialog-actions">
+      <button class="dlg-cancel" id="chargeCancel">Cancel</button>
+      <button class="dlg-confirm" id="chargeConfirm">Confirm charge</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA — full OVA-SG formulary transcribed from PlatoOraCartV1
+   ============================================================ */
+const CATS = {
+  bc:    {name:"Birth Control",      color:"var(--p-blush)",  ink:"#8A4A5E"},
+  ec:    {name:"Emergency",          color:"var(--p-tang)",   ink:"#9A5A28"},
+  wl:    {name:"Weight Loss",        color:"var(--p-mist)",   ink:"#3A6A78"},
+  supp:  {name:"Supplements",        color:"var(--p-sage)",   ink:"#3E6244"},
+  gen:   {name:"General Care",       color:"var(--p-lav)",    ink:"#5A4A8A"},
+  retail:{name:"Devices & Retail",   color:"var(--p-butter)", ink:"#7A6A2A"},
+  admin: {name:"Admin",              color:"#E8E6DE",         ink:"#66756C"},
+};
+const GLYPHS = {
+  blister:'<path d="M4 9a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="10" r="1"/><circle cx="15.5" cy="10" r="1"/><circle cx="8.5" cy="14" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/>',
+  capsule:'<path d="M8.5 4.5 4.5 8.5a4.24 4.24 0 0 0 6 6l4-4a4.24 4.24 0 0 0-6-6z"/><path d="M15.5 19.5l4-4a4.24 4.24 0 0 0-6-6"/><path d="m6.5 10.5 4 4"/>',
+  tube:'<path d="M9 3h6v3H9z"/><path d="M9 6 6 20a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1L15 6"/><path d="M8 15h8"/>',
+  pen:'<path d="M6 3h12v4H6z"/><path d="M8 7v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7"/><path d="M8 12h8"/>',
+  test:'<rect x="3" y="9" width="18" height="6" rx="3"/><circle cx="8" cy="12" r="1.4"/><path d="M13 12h5"/>',
+  patch:'<rect x="4" y="4" width="16" height="16" rx="4"/><rect x="9" y="9" width="6" height="6" rx="1.5"/>',
+  scale:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8a5 5 0 0 1 8 0"/><path d="m12 8 2-2"/>',
+  pouch:'<path d="M5 8h14l-1.5 12a2 2 0 0 1-2 1.8h-7A2 2 0 0 1 6.5 20z"/><path d="M8 8a4 4 0 0 1 8 0"/>',
+  powder:'<path d="M8 3h8v4H8z"/><path d="M7 7h10l1 12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 13c1-.8 2-.8 3 0s2 .8 3 0"/>',
+  kit:'<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M12 11v5M9.5 13.5h5"/>',
+  fee:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4"/>',
+  pessary:'<path d="M12 3c3.5 4 6 7.2 6 10.5a6 6 0 0 1-12 0C6 10.2 8.5 7 12 3z"/>',
+};
+const IMGS = {"adapalene": "data:image/webp;base64,UklGRrYEAABXRUJQVlA4IKoEAAAQHACdASp4AHgAPnk4l0kkoyGhJBIMSJAPCWMAzJIlXj6WExIM9v1z1WnLU7B8LPnQsTxrn+OvmSHvVai1IF6disjSUxbZ8cvxpad4GTiHbCIPRV9uucu3PhNUwtDdoRYyrBr8RX62vzRAVcwQ5BKG/aYtVSall2OjI+4CbB9wyvxvL43BnidtZe/VvO3IsgSICIsTYWxwYW4wz0u5+gy23w8JCut1y2tnrle8wYbahWdGHzfcu956QattE+WJRJeJcjdqJY8kUjx+kJEkc9yeExnVoNOO9VHyXj2ddPS98PKlwf83hugsAAD+/EoZh1uL9WPi95SdYXb7PNlw+fzuLf9Q8M7Whj4Rg5J6/KbTuUAjy+aPn9d87LQ1Ra5sXFOP/Yz9kEbUSHmOyNbfqCtaHx31ZOnRAV2kzGUAp6uqgyFdN6VwubXT/oJQmjpKhmQqWqxKlmK3B7TMEr9cEyvhFBtwiwcLSwNe9kAEv9yOybMJ41XlIKlsTMwqSzUlxZxmSMiMAaJy5tfm6dunuQluyJ/KrrB/uzbTredSSJtvvSoQP/vAHfhH2PsbkNMS6FxPMiRg6iD4r1RoJo7oGkrEuLAtWMu74xeg/qRrwYA8AY78x6I+6MFYhScgBYNNpA3KVaGA7mGBwSYEShbd+RfiNJ2Y6bjF0rdVX7NLqaYjfV28i4KArJz1yk0fuGbbpqGsCc/Un4gM5mf4mmibmbQtc/9juHP25NivACzVqy3O3x401PuRc2UnGPdYB7u7Whw/07PKxIuTTpBbdN2dcOQOpjhLI3bZ4Uox01L3ENOcuVn1x6/LyRa2UnRLcsr9wWhN2RK+EsKVlGQ2R3/UZ8s/pRak/l0SBme2FsXP+yHKJem5Tv7Q4nesQOh/crDjOAgY79wr6DVGXN4ho+dgyW0n+czk1oNNj+YGvLY4luaurD2JJMeX4eQudwZFzizm68+FfxIs9p1OOeA8GKK7ZWPDaGQgFFctWbEtW9TgPLWwsFzRwntNJasrhCTzq4Pz1NwQ8ow7qIGpVZ/xWtP7k6uu9nDxjyrLAqz6AVM+LNNJfItCfwZWyZASvW68K71J2oywb3Xsfo9KB8ngG3k2OtctkB5HemaHN9zyRjFFy66ieM7Q/8XBSfpSDVecRYWZQQH+3YhWDfJtC1Mhf+sNqmc6g5uLQdxjVzc1utihNPurQ/qf5wnhPyeUZu+sdH7kAQ3iVKhUsVhdD/Vxb6ik0mw4liuYfFdVcq7hPrIQSZfq+AXKHdhEXIEb55KJs2zl9Cr6z5Fp/an9ozuhsZeIW86OByK2BvKL0nwAw1vTP1Ajsxs8OBSDKZg8ZcgaQh/wNslocF76nvBJma4QcPDLkbxyBmJuGbpud/SElKWsMycqqOzQm/IfYt81SrqH/y8b6zbg4t2GL3r8lRsONNmSge+dssC4l3aWJCbBsI/HteZd4/uxhif3bXjAyMjwzMQi3Ndsmqdcg+UjwMzZ/NnOOp1alKIG+eNYg6U7WTeuxdrp4k9WAS5KdWtJrvzpT7YzeKFahQv7GtlvS1gvGZgkfoQiyYCoAAAtUwkr4/icLcrzp4eMewRAAAAAAAA=", "acetaminophen": "data:image/webp;base64,UklGRp4EAABXRUJQVlA4IJIEAABQHACdASp4AHgAPnkylUakoyIhLxM8eJAPCUAZ1I/PgOWDJL85t0OfA05KnV/PT6TXEZwaszwItq6GVRTf//4gdouABPAebsL7WY+i9hZZlbHwOImXihZl9yKRZA6kXrM1gALB880SO/3fnZO1zaILKYoRIOzfWygH7a5h71y+FFk6NVAJGMVSZwBbL6GxW2efjeD9WnU/LNSGd9A71Zs/9RXz4+mhSofFCHw2P9/OrHNMD6lbeJa5N15znm02S8l2irkCGz83DipwzV43Y3iT1wFj+iaI/eVSMtmjpWCYod82/nWxJsukI4YAAP78qAp072wbWx1uAiASiD0ZgcXfHzPtzHsPj96VOSM5Z5a7sUTu6b7WFCEQMaAy/4kr1zXnP0Yf63zDEEqvX72W4ad/Mg4DSmKEBjQVSmn80MZgisGJVK7PqiMzrazDsiJsKsxS6FTr3AHcCmKmquOYCyyVTr5mBnLV4jGsAumVJV8OddIttNwrUetpCZHOEGiYvHxvo76K2Es+3VTTn6DoXHhh1F15Cen6NjujgRZl5+m/MfkjbDiB4iU0Z2/DANsrZ4dEuTUglMnreQKSRsO7SNa/VEaEBpzTaLIy3qGQiPX65syQJhmO39e6NOKPCw35roy6epX1aSnjewWoxOzPMWCP37dvFO/rrZfGxtqWXokevvcJnYR2Rq1TAETvarPoFp2IIbCLm03mz9eE7MuRyjJ8OzVT6d7/bsNRnm8gPwMqbWt2ubUx9aHPHrRsTHPBlGOqy8XcGUKigj2cjwBz3yh6fFtLGj9cL5HDdMVxfeFPMz3ogzl6u/D/Nkun7wdZ6Svec0YjZ/ErUvmEdz+ltbk3iWJSu2EUgKnsJ5bzx8zAltHBTip9HcNyXxoQ+/9M5TZrJNNFUez6TkWIoKcfcoLrZiIfkLjFmh27n3tV7VayaFC3NLgxMr0KZsSPK4/a7ABK/NrhHxu0AvpPoI0V/8ScmUwGjnsYCo+ToaIaTb88hcCjvUfcLWwbNaJQ7vx/YG2HTavX7n0K1+D8X9smxuwjjvoLc/ScOsAbZEllgsnK/q+sHkhFE4rVOmqekQSCd7HU4+WLpP73oLtMe5lIyZ395a1AF83BpU4YKvc/quwdPWhiMhyv+YdFghgK+zDQJxHyfXbH0NJcvARcoLE5GXhjnMo59ZOG0mnCWUz/n+J/ivUJbIUgK7JmKlz9GU8wTEW50AWeLxyx4zomIQJUCFzTaDGCGtiqN57m1bLeDwxapkUsiKsHmVOB9t2+3x8lgIlgIAgWWGctAr4sGxzBuZJfTNLwKgAxI/Lk62FfrCs3Rrn388tkO2fsR+EROyGDRMx1xzgvn0JGqJirV3GWO38pS/fP/w9AGSY5B2/FEAigkP3ROhAynrNRg9PAXXEH8EFGwnqYCdYHTG2thEfpHbTr8PcyPxbJw3py3P/la+KjPh/IPj8lML3zvDoiRKiHj3M2J7vdqr7AU1VHlY9XWHNHxcHL+lWzpGtJcN/uENxZ9g3JCACIbm6VBT4RxeyKy3/aUoSunOUrGNpjjSkSVYAAAAA=", "acyclovir": "data:image/webp;base64,UklGRj4FAABXRUJQVlA4IDIFAAAwHQCdASp4AHgAPnk0lkgkoqIhKZDdIJAPCWMAzxx5fDcpqSX47bHc8jpw9AnaERMcKanTDmhXV3u6g58xCLMCR/+aJtzFewALJHrY/Y6YLt8V79QilOaNtyXtakA8EZzRNr3Xosy2cY7PEDL0t7MRUN4CWHQ8UTyNCAJHE/dAW3EIxCo0UQHzU8y5O1SCxmEmUOIs4Y7l//MypItm3rbhs3FoP/qUMdj2zW+2D4EGZr0IMp6aKFbpRuZl9hXg4JvmZaDKcSxaL1wbfUKiWon+XwWtGPrPnyUMfskSTNk7bL9o6BF6RcIWDG7EwFWTngnMAAD+/EoCca2iI8LNcuz33Onk5CkU3TmLq3S5HKYXzXwy9NLsMj0bUTG6RfWJbDu5rWv2j4zG3Av7xd3nm+N3uhYz67MZRpDZVpcsoFdiAHLpZ9fAeP3oN/DnKXkzKc5q4FJw11y/ZGzCjSdGLaqiwf9hgbU7t3vKrU5aCEkhg6LqklYkdGL0Tw/hLZw51t1Fl+3wK9lLpnvCG9UVnOQ8BCwzuBxBjO3d6o4xks2nvaFLf41XjoZW1znD1BsM5w1G1Ivj/mc8QkjVrxbT//x5pYUE5aU2IZuwduAHizIykI5HzTTk8Tvp3BdJujG8lQAFUe2fiS8VyGJf/I4RyidgWV6Mr/xG7PT3SmbKOVq/yozV2MeWomwBUOFgI3iiibJYxyCKsOBRy7c8XBYKezdTaZ9ph0k9rDltkHwYTCAQB+zk0Nc2/LDN33lwGt/2TfxNAI02xn20RRhh3pUjy27K42lyEa7NHR+XPqVlxmN3JOlegFCb4fFAeNeQo7hvYPh3JPcbiSahGxA1b5skvPe4PFqeQue7gdqbG6INNgMgj5Iw6Ug2QKVfIWleSaBNzB/76GusUnIm17aYKS1PRYlMpJgrYY7UNqSJYx2rPpL/xHdv4lf4q1ZQAIfxrAg5F9YKfrJ0+f8mbmvf3QB404Ek10liaPdqgBobtE/JYpUFtueShhoM7Zpu2HnMBIvd1MJVWaX44yQs9D5Gjs1AapKRnjj9py3L+ILAEGhkw+o3MEfcuBUXQ4EeFo+/19BBL2a3R/zyoY1oB7HNBd9ImvxjwnkK1fq+7rcx6NKUknZX6JSjCrnatHxT+zRSnnIQkZHEg9uKFjDJLxIfgAqMqFsq+1I3hICjzVAkLlyR0h8thRxJQz7KipewufL7Y9p/my3twxDvZjgjTNbhDralytreLSxloravXM8bKpUJBOTL1oxpJTrAM/hZZrCgj/kkqxM44t8Su0xMV2eEoqoYTwJvexHkLz6R9VCfacSdOWjodkVjVlb8WvCT1KKQGMCl3lLBlsWL8ebeLKRMMWTx3yFHyZFzz+KqZ43DsuyixpCEKrLO43VyOOY6bfXEfGLAZKx28oGgpA/WCio79Z/IQz7t87Pn03N38u7ANS0yFq9oMNmvyBfON0k6ST5D4idezkz+EHpfGWX/PsBg5PezdI2Wwx1k3h+3WH4HLjxI5Z0p85n2n6YN+ns5Li735jNlJGA0wFk4lyYo6wRFoyo8zm4Ojes+fLVZbw7AQbs+ClZ4x+Zud6Lhp+VOpjkEIOfoWoZcn6XM8HhBZwd7RXXLlC0+kcRX7pcXMSxG/XQb9ZRZaQWqj5pkadyIrEyQepBcXTHLsJhNX+IMvapfVWQzuY4S+fhidD4/IquxQo2karwAd8+MJSJbFg2fO3wJ6z3QSofRtRgBFPPvvYRtl6PU9e3a2ncg9tZpo/gKnVEdayoAAAAA", "chromium": "data:image/webp;base64,UklGRs4AAABXRUJQVlA4IMIAAAAQCQCdASp4AFMAPnk8nUoko6MhpBVYMJAPCWkAADcCQEgI/H2HrfE2Xl4cVQeyOLhkiZT1LM2LBGpPHiWdV2LebfJivHDqK/tpmA7BGogZhIAA/vq2gDOQK0WmrG6iroR2QyLu5Y1rYIrGL0+sYw6NnOg6LqG0cjzaU7/terlDVGSDy+0fuggqMPxaeozR5B2DhGFE62wSmA5UnzpSeeOtqNgG/k/XYciEPcMyYcGMPyjMAkK81AP/XCLV+IgAAAAAAA==", "coq10": "data:image/webp;base64,UklGRs4AAABXRUJQVlA4IMIAAAAQCQCdASp4AFMAPnk8nkoko6MhorgIiJAPCWkAAC8ktflxIGs2mTbQlNJg6PFHj6bqhywTCjUtphLld4c1McEwNcOqQCO0Dr8oy9KLrHWOsWAA/vpeACmdbOLcufhIMZfqDZw9R6NXt/9U5gtMG+vGvLBDYipHMEq07hrJHpPqbOssik0UJXqEmH4tPUZo8g7BwjCidaaq90SsvC7xv2YNyX7VaoBmcpFh8VaavZDtWmrx9U54F2yrXrEqfGrdAAAAAA==", "diane": "data:image/webp;base64,UklGRmwEAABXRUJQVlA4IGAEAABQHQCdASp4AHgAPnk0lUckoyIhLhLscJAPCUTgApuYpy0RPwN8AnbK+YDzV/99qR3oAdLR/nckkwRq+oLxQjKKvRqSN//sMFv7aWshzLoZe4ylCYGceiePHBALtEI9xaRA6eadHcpx+3sZZJHWhB9BdKBZ1Si7mO/0ZVcEIrfkdQheo7S6p3Vyllrnm4XyNPobZlX3+oJC+nIstki3h0NfLyZ2OIAgiQO1mwqLRaejGd9Qy7McBHK6hkfgXwJ5R6QyO2A+/i/sGBulvSwqOsTUeszTzvyOeyka0+y0GhkXPeWwfHNV3nIEjg7Fo0WzII6VDAAA/vyoCMsAXiPvCPTjIINm/Bz3ftuJ2dFH3A+eVRpgLgAS84EDvn6q47n1gG/xmutdMMVvrR12Bo98IpfY6uzh3g2+2Bcg570dGoePnDL3Euj1RjemtN3YY0YggFTHDVCMxEWoWbGK6knCwjc3kCrEV6qPL9jOtttT7m1xPENOImzt5NBInf6+bMBYZ3u1UYy0ChaGtJPqD4sRJFBt7TmGom8dc/frE6L7lswHLkXJJue6cVq53cmySQnYITjgvFGtltjdD1Xc8yQyPpSyZJRSlNVUW3HJ57oHnSudetIGoQWg+hb9b5FvEgm9lVGf9Cj/K76VdgHRN1D1OwV9zqEricd9ZE49vee2/6L9lGzDwF0iDJDkBOHgEDwrqZAhCt170EXR0gRZlUkaDzUgB5wNSmyPQqpKwF3wpi6f85sud9o8c/G6c2MRNeOK0A4ZZ+KJZYep5AtJ8MT8tzanewab/lNoZwIInyOOCm3HIDiw/oFRD5mnhb95hYyiokL799n0ufs3ozsJ0eVAbIssYmm3zJumdTe0L3niBuqWXSzDhgARli80WWKG72L37C1RoUneTUD4n/ec/ezvE4NJ2v44Lxpn1gh/mDg+KXcefz1ufTrOyKR78dKcGppyD6iN+6drJloUsSuDJFEb10Dy/wow3JPTt7sSsl3Ck7glvCpxYqLsclXAnbEGSvYPwvMp0C7HLGL4DF/60NS17rgmo75QZnF/7/AKu4YED6wzavbB5uNLZtl2X45/I/T09OHEQHGRnBCsgN4rmVLBZPuGweMmhSdIO9nf3yl6KCTM1E+pUlQAxqpTNxevf8Ji79G1wfk/OX1BsW/EXEK1+9R2NR7yfLrwCmxh1PTq5pNR7SKYnlYLApXVpGjlUIcfnMPoCNzEytxdM1GVoIzV6KymzfGmki/+siRorwx3f40aBBrWvM2fP35KC3vAMpAo96LmV6pJy6jcDBQKexNOM0FeVsPyxcOlQYK8CX7bNq4oBndTUfdQt6lab15rJCeci3QM6xmDLYik+tDw+1MShEnUt0jr0Z0dPdL7rRlnCnC8wFlYRNFENo9wDvsDPXRlFfIAJlJwhQQv4WghCqG09y0ossuvGS8CeuSB5hqBRtOW5yrC/BqZbg5gA9pLEc6yA0nFeqEtIuXO7x2SX3OYAAAA", "pregtest": "data:image/webp;base64,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", "drspra": "data:image/webp;base64,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", "ella": "data:image/webp;base64,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", "ellatest": "data:image/webp;base64,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", "pouch": "data:image/webp;base64,UklGRqACAABXRUJQVlA4IJQCAAAwEQCdASp4AHgAPnk6lkiko6IhKpMY8JAPCWcA1mw2VrUpEvT7BolD+Sr/sbse63AM6vPV4MaQoT8QRxFrFX1LMR6xfGkUQCZ1AAS48tc+wiZWsKLltijeBJrMcAC35pTsjo9V2B388YlzgrsO/RrcXlOaaefWIn4XxIyzuelj3v0bSskm5Ben/nfswcXKC4w42AD+/EoAAACVEzaNWzY0tCPQpY9CE/p1XxO69/f/c1KIKNa/oU3cZu5j8+vH9qxBSQ5wUJmKEvxlny2XoRKEmMh/lIvPXTaoFMFtPJYi8KFAtGjiPF2ZvpuzsJTUxI3TXd6Q0NqnGWa9/B+UoSSoTEkpaHl4UDQSa8zgEvmlnCx40+fXdbfuBKj77PDKdL/sPZa9HGhFD0M1XDwvfsFQzL/2sJatbex/+i2Ot8uGkAu5nAg32xhYZ800LebvuZpjk57Z8g8Q/S42BsysfX6G7mNvv41mM10WtVYtTjPorYkxOygDe9hrGlS719EjuvqN+fkcGLWpHtgrpBxrygue+SAJxMiGs7MeC5pT+Cv1kA4WdyuAV2Z5+Y94ZgED4BnkjBcMgsacbeTP3Xtjm8tUFsVFr4uYubaTd8Pd8J95rX43VeQ89dBSHjLO/MG5ovon5dMyn82x3RHDWf2D4gbJH1RZyjG8Vei2K6klujzfA9RJFGqB+Ttsg5CrzZZhIw8/29/Wy6L5BJpjqwZg4AWcRZW200yQSJmE8mt27tsxSz+f+qr0JCC4O9MUGGsuG0buyXS5PqCB662+O8JOH58xTsyM0aZAF+RUoE8w8fiKmuuWnr5j2Gcaa5Oz199Q5KPjWJFWrjTsBrIdGqF94IaFJ6doIbZK5neG4VhATkUzEAAAAAA=", "estelle": "data:image/webp;base64,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", "evra": "data:image/webp;base64,UklGRtICAABXRUJQVlA4IMYCAADQFgCdASp4AHgAPnk4lEakpCIhLRicAJAPCWMA0AxRfS4bZyPbn88Ppz1OsEYsETz9p//sIPrD+FkmhgWKGpPSGqUVxvjPdHP6pCBpgfWVLcD0f0IsaTMRNNEkMoV2zpE3YdUBrYTukDs9/ztwXG318+IhqzHUMevlwjaZDI+owBweIEZhmPz8tD8rMeN1MIlqUjZgcvltAm5cq6IVpwIZ0W4XhBSKvWXs+jmheY5UETBrovG9aYucKrg844MYAAD++yGcFn9dqsFtY0EHMc1j4/f558NQ0zXjbG3OWacxQ9GdYxCtkxTEFSc5m63+9oDffBJ3L2w5EZjrMfSXCqLoKMEs4zBByFf7ghx2QDh+v5hcxakSXvQOHOSadcf6jOkNerHti1oZhc9rzwXj84ibq4Y5tzIU9JB8sa0Giqy537TaCVjf8gyeVmi695mlJeTKwkSyPz1/gpMYhBtyU+GM1iBn5ERgGKZ5FZ5Mvit/k+EP3PXf4F0b2FO0knQaEZ8I8sG8+doLFHoY63A/kB4E8vh9Hwg8ihb0BQkZrIuNHY+HooRrY2Vz3cnefIsrZCmHmaFOcZYsLE/D+ReoHKhLy5Mtpf6wwW1Ak+5dFiRMxKXDO839OIpCBddUzZ5vViuQUpOo5HtiJOyJ97wGh4YK4Y6vNRs1EEO15agHO4/wTIkooqu/hcg7lH8+tgQpaW55lqpCx3f6p+pYsHxL7vhj2wey0C2Ca0/iYYDKCUW3lGxPkls7+NyDYMBwio9BrSQLXNqrzWHPcp3hpSt1gJlQOddPLwBSCVWAGvDAMK09b96UQiCSq5WssxpUdTrWe88Lp8oEMwHVC2CrdNgX8Y8vUXpxefC1BdeiWBuDOeMIVg6Ry9ytB/Ximx5FMoY3zJu3fecZepNsAeaP5LcncUAULhPcv2erP2OXx9gokz+JCpFfgAAAAA==", "fluconazole": "data:image/webp;base64,UklGRiQFAABXRUJQVlA4IBgFAAAQHQCdASp4AHgAPnk2l0gkoqIhJRTdmJAPCUEOADGvBrSwULPxArth+eh04DekMhQ88WfscIeXLn07TT3oBnI9/uG7n/1CKwTN0hf1LRtS/ST03q0fugTjNnzixQsQyv9rprEoZY0mYdMJYmw+vLQSLHlJokq4f9V2MYez97PrpJ3EmRMYx7WRrLaJORHxTEy9iffD9xIrzDcqVCoPI+SPLNb0Uq7xN/d0JbLPLba3usp8qxilEoPz9tQv5RM2hT5YMObiyNIhbOiBvAfo4nSwObXRnnvDYIWyBnCm9vJbPQjOui6ppCutKmNhwSsf734gAP7McR5nzynyPOGQ+q05ue4OYUbybDUDlH9eHCX/IAQ4dBL/hB91mhjvvUfeBPAV19EthMDQRKQ516ounJgkWzA3f2NMxCgLUVu2ueT+P+3LyeEXDcYOd0TmzC/sZUxoO8lAW2q3f27PfZNAVdcK9smDAlvR6Uo9fB60Br4Vxo3NTd4QEEyzy3Gw1sf4PG4titnZo0l2Zi3ZniNsUVF4mRBVARRA76XuCYjiP061kGpyO5+x7bC8az29vcMKYLx2DjLUJm9VIRH38S8f0ijyIfQKAN1ngNiXUs+wsw/F4LE58mkcfNMWKyuHC1C6UDk6MCFuBM4q9k7peXfyyaDY/LrgmfHFxZCil/SBdUuLxsywGotsmn5rIrEPfnxpDEKnEcmTyW0Im4Bs8fKQHyxAEHoSfRz/6bLd0LerGCLfqVGz9JXaY95BqhmWDbJFUGESr5GC31zEcwCtXVr4q+pYIKbokFuZxnaubUctjD8wKp3RoeThz+0Rgn78+x7Yt//df3+SyMpyhoatnFLq48io3MHVh46ihZU8teikj7c0Smb7SlJN9ueBP7f/skRKG23Ag6++RKUL89nEp6u3J23/6kedCG+w+DKv5kkGRXjaDlOM5YzDkA4A7MgBSDSID3mRF6z9ez9idUjvx4XruN/s0YJFD9Jzz+BfKrXYlH/x/iQlSWf/P/4N7P/5PPeKl/sC2h7MgIwThxpKdMhi3XYaRNFgzZI3SO5ScgKl3SwRIzV0GisZ4GCRkJyF0MIDm1gkDAiuDX0aSELI3tG0EeohO3Kc6UWVdx9A/dkgY65qsULLPGP7MYygBSsOGX+2186g9PWceYzGcVkbpDXtdiBEv3vrCbYnNx2ejOlr3Na+Xof/MX2fM0FHJmcivAlmMt4HdjUenEYwLx8K1IO+W9VQZuf8hSMGi674laumiGSa7TQ+KJizq0tiXmwrVQpicd4inI2iZ3JN+qOwV+zJPg5z1K0htIgQsFD87ivAb5MBum4200Z+AWyAN1lF0asrmlEQ5aVXhrpR+0rcYXJYQdkNIpLwJEhWF7RMiYaJWPhTT9Ye8z5GhcHLGkGCh0lNTZRk9ax53falDvPkPgs0PlnF4tAxAp2vip+HqliszzR3fSe/aw6UgrAXfvB3/WjDlhPt1nk7yRLzpOx8LGAYj9XBiIwA4BU4Of09L/FeW+qIlyazrc8GfYJbn+G2jO4DCJmNArc23KusieSS8NIVvXdBDzMMCFnbQUuONegRU4WbqUgptuvOyHoW40mskDTKnpxQyEwm1wMGXHwZ4ucAzeUWVHbIdsEI6CNVQyDQdc6QYjDwgeoCydoNn616Qh8+aU93GebbRslJW8r3j5jkYZcI0p348sUVuhDgABZMsrYr6uvRel7UB9x/XtTQfY9Y8ugYxUfrAAAAAA==", "glp1kit": "data:image/webp;base64,UklGRlwCAABXRUJQVlA4IFACAABQEQCdASp4AHgAPnk8mkiko6KhJhQKAJAPCWkOueABiVnUHPgVFl4hjKInW3t14q+gGbL0yBIOaRL5V4cAggSW0xEgydNPk5xgFbOftVSabDMMLlZA2D1TCNpKKTPPFsOa4ooE+ZDz+WnpNvQ9Scgipchl/nPz2bHLwBkFVrFI/eQwKOOlKZgkTtfsBS4zD4FREAAA/vuUAACUUnu00fAdPAiVbINjJkW3b/Po9lyruOodzrHQnYmhmjA2jHf9k2YUg7imj0ovyFtRuapLyrQQE09bTYAntbn/4GNhpqa4pYc2HhgnCsO4JgTc3EZ4OiNjS241fwa5zfsJo1rGUgQuU01TN8rzbNfedYHeZ1+sf455I6GMM10XmGsB7OY8iaSihRtZ0iai9NsYp3lE/i7H0MyvN0yzIuJig071zWKz81zthLtLx5KxJ4YHI2nVq6AAqW7mZ1Bi5Dsqb314I5dhroEzsRV7pVlIeIEsK4QsjunCvn0XzqezGjdDrbwGojcHXrhOk2JJFTZefqOWeBhgMcXkeCYjaCoU3hsKQaDbv+MYamZNzVBkbdq21QtU4dULBGfmNnsKmNBLF3zCwbCGhMh1LBY6fdqbsRcbJeXoo1mI2fJxWkg0aMiU1Wk0099BgBMKoKdEXszFSLS8X/3WhmnKl2qGht7FoXTqSreG1m072zzDlsc1b7hiVQQRMg690ECRGEY6CNu5NFTXN18oyopUqkn9SYxJSV1WfsSMacBOsBILpRdflEVzYM1uVZtHJvNsz8I734V4juAAAAAA", "gvza": "data:image/webp;base64,UklGRlgFAABXRUJQVlA4IEwFAAAQIACdASp4AHgAPnk4l0ikoyIhJhQMAJAPCUAZ8pPflcHO5sGe24PPBvoumTi+nE7RW7OX1pzmoi0KY2qyb/++ypU2W0T+tQ4xurLQpWODWuBvriCHUcnXA1dhKWMoneDFWaqd3M7X57FyQEeER2mKGTNY+cM6kD7YDaXrhEnpEbA8nvgZdJpY9cr4iYiFdfsI9dQkEHLtKZejH1yrZ8r/x1JgiFR1s4oxl3WFt7bC0uc8rGhK7cC4COYwith6SCzdm4etxCLd7r3Z+pEZwE2n7cOIe2UvNE05FNgqFwfYMjhjfyHqWrAKeBr37GMnFQnUEACWCGzEdeeBdN+msgyRW/9FPlWHaPQAAP78ShGj3Jd/a40oEn/Mqjj/TrKRRaBW+chlVhRBx0R3V8OhtXozH7L1nKPf77RTieRM/RM+bFFX0qPKR6hKY/rFIsq5vwM9JDafQbLz7HQUSWCS0KC4SrAtnHZbEXpMyjLI7hzjadyswLwLHor3uJDAn12JaUPO86CgfiAWt0ecv1SBl8RCNWlpcCaX4E2wpDmoejmVxYf437WJx6Omu3fJnSF7nGah9vQTQHUJw7AwOHYKt6MKs0aAWCkgP1NdGg54dwlqtnp0O9I6cOI0L+vIjP8i+tAg9Ien4GfL/pHEZCmfpCSTBJTPOAoXR44xQWpEOzvWeBdnlc0oesqayRdGPIIoiIrqJjoBhxhl4TuU3iJpW3IDcUzbupN1B1rp6XDgQe20VfoBxwwTa7XXd+nsSjEki/qGLriZ40FU2ZPeCQadCiHaqaF/f7/VcpmDnqpuFQzIrx0WUQWFbxnT7d3IRytNU7xKo5EmN2fsCfFTcam5LT1ke0t302EjbntNX7iNWhex76AvaxZrpnTVQS79OC4AgiY7k+rblqfg2AQ/ILE18MbpQIBFzwxQhMRPXHBFOqebw8mLrFd85nI+LXUaZv4b0ErkdYT0cxEi383r8K0WNCg6QjBRACmgN4Gpwx8EgPgKc/6ztDxjPxSjOFTG2LMKECWI+FXVLz0s2crplmsRLVHzZ2gHA5/bVUqYPgOPr3pRXtejX2mOXrVHq0sqGXtWSGPdr5mnUSQ0oNwGqLMrmdM3XyZXWK+qJIgs7MVXLvQnOewPqCUYRPDUfRJ/G8evHQvsSnDqa97t9+hW5BEfBpwWXAbv6FuqeBxkM5DZTdiSzDoUr73cQKR9mcjPn07AlvMoikcxKuAJ6nk8xlChAF4Opb4ubnhFXLJG9PqmNIcBe1R0EWW6Qc/iskTE1LkPQpUQgiFuRWsMvdtGJNm2GZTmXvYXvm0JdAGosfOoAIfnKS2vG4C1PzwtDphDP4/F9CTrE3adoWgFLQH9zTvcaZE+Vlw3Ij/+zuLtiMJTbP3PU6dIhwUZYiQlTDqIBw6d+mVib1l8zH5cLq2zksj4TgmAmNPoCnH1epdEh3DGXxJV9iYFJ/X+uhdNGxNvqlOtXSf+X38L0x4iARdXssTgq/Kntyv1iiZ4/Ek+Ss+Z3a0n8LCGjyB1wGTu/fEl8zpNEVa2dXH/rdsucz8DQRfW229M2JM/EgA8uk/tumUc/Kdsgj+8kS1nalEaSYW1qUp5t1Q2Ys8Zj0ijhiiM02ja41kMv/1G8BLvlWUiWw30DeHjWYWogVoUo0onKmpjK/Odkvxhw1Lzvm9X3vX0PyTTbpJOxjroivPyALHNHVxbiU7hLNkXgnwnl1lS5BRsxFyK/Jun5vRHhrDUlAsR7SQ7Ezr764dcdhNsqC3y9HBFQZvSNSosAsAsAA4iapJyszP5KHekHPE2paWTAAAAAAA=", "jstnd": "data:image/webp;base64,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", "mercilon": "data:image/webp;base64,UklGRqgFAABXRUJQVlA4IJwFAACQIQCdASp4AHgAPnk0lUekoqIhLhJMOJAPCUTgUbdNpvF5kA/VkRDLNf0XLh6h/gjMbbHnofOyvqHIQaTvu7NX9mzF+FNUVzUkOSMaEHC//hvrGBPUfpRh8fpd2iG/pN1D700auYQAsC7iA4OU+eFIaRr25C/gj2/ujQlTyt56zuKvutUKBb5ZTBQ1IGn15u6YBv+ba7GUNRkQhfo7Z99A1Pt2yWyZyCb6YIgOPaW/t5b0NphsECNKe6QimkhVH9ak0Tcr/L9ZkZ0Iq8VyCUJCJ+l5jhxqymZXjKsI1vNK/97m1zENOlLbRoVak5jRpWE7jAFISMsURyOTcn0pwhlhW+covMzJX0Ar+lmJqj5956ogJqwAAP78qBKttbdPpihnaYIih9PydjjTNJssO48hi4POsOIxZ7sK4L7xRKyG36GbLAwiJNiDv+lkLrbnGBxyw3g5CCK2wYzuy9iGRr90YykzVVnsKeKldzXO0Jf8Ic7ScSNPDb8oXRIpPrgITCHRshXihfbvPUlKjh58aFZ9HQU/AVwoUoKbKvtLZIbwzqzfE1+m5tRaKAkoZ7hrfZ6BKrZawzxcO/ytjWaDX5yFHBmfdcRzAxvONUWfPvkHCaBgIo/CgTOl7kjt5bcZ2qVrgJep7b1EyZCw0Fs7s11SnXL2WsftTRrr8GLV2Pax2/FthTTr0CHz3FWhb4+aBeU+O1Hi0Cjomk/B+3am0Gt3FsEC6nu+RWe1rDNDcU9V7Y6pjFIFhTH/Mg6EXtkSJUU3tlHGU30WOkyAL1howUCUWPuzNv/5c91+iee/YqbdAZ2pauPKvBzhuzIb6CXBZb/nrz05gJtHCa3UJHcFMUlD2RsNDvjT8ioCJOqOAP3/gF/8gqdsUy17WBuGas7Ci07D/jXWS2H7SbXEavI9pFZZJmmR7GOl5STq/rLYc5bJoKeQh6ZW7BJVWUydxkxuEiJkTJQJhfDibjVcWP1zEjiMxNUUaXT9C/JgWwVW7UC3RSUQvTuTD5VOGNTgYdULcqmPWFmowXgAHOuDIteHLIf4FjsevQFEc/jFW9WXtVb/+foD8A06h5sJB6UXTtie72mwfrR248v3MNc2nREd4a8IeTq7ygobEdiz9v9QrdFBLA7k0jcYpXTwcoh1BUqCVapmfzorGawGrklpiiOID3jyQ+ub4jS+8IsALAsF5k0JrhRdssTuBr+ZX3pN3waa+P2a6YbyWOftuISqa4Gpp/0YgLBGY1CgecGimtbY/x3PpBrUeUJXfMx24vTnrccuPtCG86LZS1N3pa3B80tziPmfM3x4tt95NP4g/7/U0PeB8lF1GV3pGtG3D4k321H8K7UkY0Or3/5dj9wjBm+qkr8A7ESuicletB7bt9UH+EAh1F3aSC/B0AcFlZKeIorq6Zfb1gb8vPXRW91FPOdNWWzaHUzPZDhN6d/7OXvdKKshvAkqX8DNop+5fyNeoLg11NXV48WHnRcUn/Rw3a7DfgCa7R/GmZhbOpf/DTnj9y7shx5L2VXq3fsvXPB/TRsBB7I5JAauknk1s7wY1kovQF9/CQJdzxaPdn0M60IHXZLzzDWz01wVqD75YEBxesMHEcT/gN++gaEgliPWX5IjSGO8pt+mN3wP8I/3gc66O3ge9NSXL5OWAH8PMWnVGH9bLPKvlw7X/kNhwj9v/eSrXR61uy1u0Ob1l1Kz6Wnbo5/P2kKu/yl8zVefJkTLRAlESC43vqB7b3AvnWz82NI32IX14d5Ae//6LWy8t7Rqw4d+PtnRFMUhDUaJ/71hAqyfkFwvkHGMSxP+plOweA/eDn/LWzYlsbgWt9FTw+WEku+Hnsn8JnGDMgbJnOTC1i/mHP2D80GWoWm15Qzm4WoxtN3OfB3O7lhzAC8fcVOayD+yATbxRoCtPA07AAAAAA==", "metoclopramide": "data:image/webp;base64,UklGRiQFAABXRUJQVlA4IBgFAACwHQCdASp4AHgAPnk2lkikoqIhJhK9YJAPCWIAz1hWfGcb5wnKqf8OD+onbMeYnzkv7N+jvvH85LqZfQA6YvINPPVonaAdhMsVhTpIGnTY7lnBK7/7UKmMxXuZckf2UfvO2f/fMieaI69vWaKNGEnqIPKWacfpFjRp+NbGmebgzIvAW17rMZlfOU7FdXlWIdzsGewrYy6SAb0gB67X1dUgsHHd/7zsbbSHcnD5AvZFxZCMHa4BRWI+topp3mqA4cFf6SFNB2eCH/1Kgc8uwIl7nFO7pRew2glrRkHiXx3wC1T3Wv8A72UyJ0JUBq/SpoR7RzBzIAAA/vxKDfCl5PRrb1XQd2DXhqAS4fwBQNejZ9eXRo+EWYbeWn67Dpi9ukBqbM0Zu/iv49phUGWdc+g6cI2D4Wt8fCRoiSTUvPuxThaHow5ME6KkcCY1z9u/qSMIk8dywLVc1jfnLxUbSQNkV/Qgmlwk6HdcQ+ddNxiVAgauyi6lT9mskzTsyif/NafxMoxfrhwssHT0XK20jaG9I6DOX6psHZ9Xt/uldQtt6NTK5uM+Ok+1+D3fMwmx3QhmI+/XbLoiW+RhqPvDCP8aq3FIGM5kW5YqcJysvNaPkmlvjEbIQn5J4c9d2KLfT9L7kCKC2bOaTm6bej3+HDXMZ9pPJb9Y+PH6P2GMhFCLRG+mkFkmkVmjbEogg4/DLrn0TDmDOkdrcH8m2e1mgqFqTAw4Iaj5OT5HK8vpod5cIgDTSzzHdyJTF06sKIfc519Chkb9a5pEIyXz+WEPtFlam8nRENOv6NJSD18/sYTAjYRyx9TkGZJyiSsxXdAI3BxieMT1gxD9aB8dcReBdwGpvn10WyaevUAQpLJX5otfiaBKRpsw8Oe54ZmtlUkfoX6FMa4nnvjQ7gbuoippWydEZP7zCsOsWoTfWTqQKXhDMBxA6Q7PfPCS0Ck26ylplkiZH6XnOdGY4GJ8ZPfvuwvJ26Mxnu+G0/SZY9Ge/QkgN2yDJ3nOQOvBDtrM4h/TB8ovAXJOeHr6P5wkSayE2H6G042P5R/nceeKfmDUU8LvOOMEVZVCmFodVOi8rcyGuCmgTAUKO8r8rX+vrcxK8nZsBHhaLPJn88UR/14hjxdjWjHBeYziw8o4Px2xx1n04wXKgUTC+Pzg9a/lk4gnbMtoi1MpfL90NpAZaLWrf9mc0y5TMwVMRqOZ9hT6BILIQ3kSJcUS4tTtfPQjd+Zt9ArlM2nW7Aor8Prj993PQp8oXtbL8wnnYn6duQ1bSVRP0tKa2mYpVFta8X4+/tGL0qlz/J/Fh6a2xKjCjpQ8M4Z/g3G2f/v3cN1MzvqAE48jEDeG2+Fxfnk8Wf0h5kiQCritRsc2aGHEcLkLomjYLpZZA2CWQqzQSRIwnmXZlD0igJmFGCo+hRJzqvqJSeggeit7pfGwyTJjj1QE2ki39NjeHTRqTS90/Ti15yPl1A6AxWzPZ6CEC8zk2HEUW9R5wI/ycNWhGeTtTFRFjzkkWaYHkCcSOdIHPN2reuel7ulyp9/U2vsj2LByBeWOPHhmYnWfELxH1RwFe6FOaUo3GvXUB5ctgjknJFTB8Y5pYZA4Gdl8qHsAgXJxo8wfUXGvoIUbQy3OCdfjb05fCAjr+BzVMDfkIpse1vWvtI9A5s3W4FFIl4OW0j7HwyTw3bgyKQXMu433F9r5zKH1BgAT8f8jTnvd8nsHw1Rp4yiOAAzuAAnIwojcewAAAA==", "microgynon": "data:image/webp;base64,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", "neopenotran": "data:image/webp;base64,UklGRt4DAABXRUJQVlA4INIDAABwGwCdASp4AHgAPnkylUYkoyIhMXV7UJAPCUAaH5C174Ebu3oQ2zfPMnivLtYYlBcCKMqV/+3hIYy/8o0UeTN+lNASw6ZMzTmAZZPkeTvef9KI58ZwibnKTTIIFIWZR70+s0fywkKDKguuMk4VEZX9UbA2agmwHcU1dr3RzHQLVYEjsCy/2q0RpCGPTDp4tI0vMFIuRXaaZDCn9+VF80tY8lfux0QJc4zEA5wd3thSv06nD1p1hSSyC2AijSwllxdmGabyDZtCcsdVCilKkGsAYmLO3RpsB95U9GXegE1VoSg5s1AA/vyoAqvBFAAwF8pnRbW4QVr4UQKd9Au//Hp8Ta/tdXubSfYcOED2e6IhheRlf/jo6slJRn/CoQGhkDuC/rvz/xL2+w1CdyaTQqH8ciu1M86pDSqJn2JjCBMTHzkseGgBc2mBJbAlE4jh9Wc3pz9xiSLSXcEQHSu24ZCH2FAbBl8e1ib71W1bWcxg2k/7sLuuhc3ySWbj28KTSp0u80Q/etbPuxnugpWaMjchtLjH5DQuZbGt9TaJFz4mKxdAzeCq7Jt3HAVvNBn1ypL5V1C2V5nIOMQqGEMjKsadNHxRmZxCe8R0jRiW2RMVAoyOJ4X4i/8ZvzPTVxWpUxPqAfSnFEf/qxZz0fmnMrJreHL1PcKRS67VY50M2mGYi5T3ccFCInqSVUq3bS0z7Qjwy+U4nxu0jHZC06RHa4PBTzFwngSHgWeMh6CrncWxGUqlE75ju6v34q3cRCd07bfTVnmtxARPKNJkBztPIMxkV6v0F4/IdIslzBAJpMPEFuGBFiV3w9l1GJ0T/6XG747ZKXlUhh6CGIY0mBoqBwiPR/3yDuAv9/nMFA791wA2DoPC0O+qK1icqXigVhdJ3TcvZAReHXBPdS1nQ2VHZDXbfFgeOWhl4m988TAGfOXUGELsgEh1A9mi6gcXdDLsCpZI5tQ2McvB3FVO7dz2+ZIIY8IjsZSoXD/hjgr7EsIAw5qrd9NLGR1DlfIcSm3CPGzvlwHxdEG3+CIKsqyjuJy6MjgIDe0evX/f/MYMMA1b3UwssHhpk8uZequcZe3OntKI/HB6A6pn0hQeQC4RYm0GUunJj4Sn1nm4pU1/YADgJki6qaeMW3oHevExfKOsla4ZHyPlIG9WwtG0kh+6oxbHRhFrzfJw7fJ6x62rkuKbJdUiBvBSGhcTMWIeuxi5obfJOYa7LEsS5HSsdq2rsvCfZBmgaVwNGDnSpTp7/j7imNwwMthTBgKpxSQUO2J3QQkTW2jYkgtgJYIwY+C08AAAAAA=", "noreth": "data:image/webp;base64,UklGRmgFAABXRUJQVlA4IFwFAADQIACdASp4AHgAPnk2lUekoyIhKxUbyJAPCWMA0IR5L1Rj9s5z1T6JZQx2Ny8vzTutEmzdbLWId/+6u7TmltE4QNtpVjKKJANJp8L/kFQxYiiImAfCqPM2A5x+3pwXGSOaJ/mZt9/imE9htgBqyXa3wpfUnRPJlze+BElXEMqvzRK8y2UMU/VSMGTGLlZtRftvcRK5nzjgEgRMstZjb3lTwKL31uunKWhC3TPu4aWt2smqrHYGH6qiln8+A0mwreBlUBsvZWiivLSe4ES8p35xX6KlIY/8eKQak42RCNym/TnSGFLyU7QQ4/RGpBwVzyROC88BqLgQUHJQ8xvtOk54DNdVaTTcljo5HMqwVoQgAP78qA8sX8w20bfNErkQl3P/DL1PLvAWjOPp2IToeS3BRzlCtGbkSdljtW1dB1v4Ddm6vc/6/KrfebZykwP02NVRytffzwfulHO4wyFTmuQf6NRETDmg8au9rKlks7tfogWNsNu9B0n9cc8Z+EBeWpVE35pE5V3vgOzW1pi/anwkcGX/pFRlJF+Jix3InKhaQK4sp+IqpWrk/3qeN9Iq+zVOxlqoI48E57K+in85tG/k9hNmoBoIaEvew/c/tpwxMf23T8cjQPhe0X7N2HIYEiEch0z5zCsqqE+poPA3akeA0Cerxpsrqj+FFjkTx6AAGZ61MH6Ym5pGtPOsHPi89vTq26yVLIcweDxXUOCJe0/BoqS6kqB1iY6D388iuC16/BzFZ1LV74F2bwzb21oJYoX7folmWcOk6Y8LvWAzfQ53EBKQtwf3YQrUH0QA5L71YoyS8qtHYHHY7Xke1pRrD5lcb+NxF9g73Anf8YCQPVN5KjRiFqK14MLL4ZTMietEXMqugftfHl9RQfHsVW5VPlJnwpBESsjwbDUBgc25c41Gw9fWSMtUsSo2NESQH99SvKl1ZmYS7FbMEM0sD7zS4YjisFjGjuVb+uLJ5XPyH3opY7N7mw0u4P+gtzquiTwr5/VfvRuY9XS1sBY0ScBzvJov/Zj3EkLPVTNnKti3nwj/wSe8/g9BTCkg/jRQqv3wKFn/ySwIdHKtID7w3fI34UJX0dNFEzG1BJ4e0JF3C3TyUdNyiS3AaUfIYcPZ+WLxxMq7BzcVdun9ajpA+LRePYqus/ToiAICF/LikfoqDZypxYACVQwPSjE2VXPaGRFJW+vAEHI4ZTpIgWrVvM0IzE1gP60si5utu+Rz/3SNfoAKSfvNygeRcx9jC4vkOno+mARSd0SCF1ITh9nucP24urdTNzuiJW0ASQoXuCZoKiiNbNmF7Q5MkX0bxSvg7A53jynmXKrSl/hKHi8xbujof5Qiev8aozeDTawbpcQJPesmzpT9DOZ3/jwbkm6bbKmf0BBbz74FhAqjOVahu/uQrZ0zguabdVrx1Ni6bWOI9YIWP4X35mNEykGafvgwzAFf4v/62TDLKnTBOdxLtkR+eAQd7lZqoA9jP8rbvCMUFMZ5qQBmIrVH39DJmEkdrletHjz+I0oNso+zdPKrJbRpsP+fZ839cdQ/Uv5Fa1aBVy8JJ6daaFb5/gi6nBkW5vG6iPnio6BxvbWNVD3v0u0WyW8H39Idy9+NP0K9E/ed+yxfywraXcWRD0ip4m171jCBjlWcmDq9gWTvxma6hjZiqH9R9xyDNwvhYoEjSlOAcDKkdmXbsUDC0/y+kHLhi8rRVou/IP1r92TKvpmcdujbTXMk6CJ8Z0OH77Sn1dcuHW2ERbVadw44yYk6pPFHBju1txKi7J9TsFQ9RL/eaHSkNnVe0AJuVHbCAG5CSae5ligog2RivWyxL+I6AAAA", "ozempic": "data:image/webp;base64,UklGRkQBAABXRUJQVlA4IDgBAADwCwCdASp4AHgAPnk6mUkkoyKhJ57oAJAPCWdu3V9rPh3A0zMCfrrFQ+A5F8gcCoe8F2CQ+K4zFQq0rrRG26I9MfD507Pi17xEuln9tfAS2mrmNa9y89oAXja3C3795vWglujXVLxo4AD+90dJdjqgwECX9gADu+ilbwhq0+GBuNP+1zGM4E/Kczzvk3jce8YlBfYKPSAgD4bIkeG8T4RABW6VJtAO2NB4DeyA6dg7dWWFiM5JHC+i4ezcEDKH8/9pNVaTQlQiuVOefBEocrv9+fp94NO21Z8XwCRhWm2eS0GfTo3GvBwwXGOFToa5gRGTUl9rsca2PIHaysKPjofsea7U6GZV38cDZiTLkVEd5S7XQ2x/9DF9L6mWQinS+ld5HzAlxAkd53TpnAmREXYVEQAAAAAAAAA=", "duromine": "data:image/webp;base64,UklGRjgDAABXRUJQVlA4ICwDAADwGgCdASp4AHgAPnk0lEckoyIhLpI8GJAPCWMAy940YB6m06b8tIu3Y55t9F8xhawwOVsWlRP/6yxLz64Wsuw+ZW/Sh6tsrL3EcsjdOIkhzWFECIEj/SZ7oj7POTG+IGX2AjJRUFnXCRwtVrm8auSguIpQvhUi4cZC+yNedOOalavYnpvSJ2x+GU2GLuyf7LhSt6mUj++2o+izEefuZ+o4IUVd/U7iIuSTO7dn599ZCjN6DVyV3Mz+mtXyCxAmquO+pFiMrZvzjvf4Bu840f1ILv/uoI7DonNgxPgmshG4AAD+/KgHXgu2Q8uBlNTnH8wsdpUuUh7hAz+QZm5UCXeDHjOH1LVsQKIftxBoM+1vRH9eNvesXqmnA7AlHEuVU1u+h4BKgc7CrxEwd2hXAvZ1HDBx/tcqp6vF9y6IM7+epWCVmFDucnjNUPdwYK718mLLnCUSROt37ItgCaw4kl0Ui/zFeO8YJcentsr2WUhVT7M/XEHRSXDiF1s0D4UtwdFEifX9L2wZksdJdiA5g6SgSrUbVHSn3A/CKRtVJ/6RN7KewVLQm8A2nqSZGA2zK7J+zTFjuASf3zZibgAwZlCRhb9JNkVNPrAadfeFyQjgv8b6hP8c6L4fk5Gs+sfYM8QbRCfc1xSnBE5hkeeKXuBxowm7GlI0kNi7PxFHffmFiw0LePgyXnRDQ3LAnw3LSbvAPWERFAt3Sp80N6RZlf15x8gmIqXFqeJ6WvGUEcun5JS3Xp6shfW/a6PCo9z3kLU9XTV13dQa0VedWs5zyxpTgPDorQLEPDxqAQSdD0owua2Ht1YIBUbVb0nksQ6nswjjVNmq7TKGDnSExKhPyHQzMzbWwz+5SmFCqPNud6+J8wzoLBW195PgaVIK/A+9VKNTr9yv3jfbygmS328765k9zCT3nLt5tgqF34Qz7AgDmcZiBNIh2ezwwYjH1yoZvgIYF5DOkI0oVcidneY5Vizp8rm6qETEtDY05iay/hcD33bGgL39KCU1TwLCdVhsWhwzpCxi96ccrOdzfQoMqoWO81JQEIAAWP7w79xYvaDmHdNVo4E24jFibAAAAA==", "postinor": "data:image/webp;base64,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", "postinortest": "data:image/webp;base64,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", "slnd": "data:image/webp;base64,UklGRrgFAABXRUJQVlA4IKwFAAAwIQCdASp4AHgAPnk2lkckoyIhKhZsWJAPCWMA0XSAsDvyWafUhtnOeq002Bi9ZZoZjRzXobIAN2fTltOG7cIsNAT/+rJAzOb5u03AGZABdeRjHsXDHnLemwK76m3uOHVZYVb4zDwC7JPF6wL1FnaOSbjCNktYVAVpeUaJ/rozsB9JACjjYzmGjHf9V5sAk9xRovWUvIaOHRDLVDdJIf4daeTq+Whrl269/Dq4wq5gvvPSMWt6/pgqP4M3f82Kb2bJFxzOc8QpRfab5AZBHe3TmEsITlZTj1Tp18R1/PvJI8ieJvS4heXSTDChlfKOg528EAYfa46I/oV+IPxTlGag3Om7aBYoydPc+PDXgJEhRI6gAP78SgOFTC9hwUqRcTPsut279TKRc07XUkhW7isIKYMrRahrJ/mMIS/DDfqrFKfeG3scgfvxgN/QWCfyAqGpCpkGv5hOH4HewthVFEHbk68zmKUfLjESeCsn5w0btlbW2Bpzf9OPVtVQ2vH9nVhs0TtQ36454z8IL+NTDzgLmbRB6Sxy4D4iUNguUxpgQltfCPZTWOQ0Gxhdz6r41qHIdr3pitvPdU2WH/1N3wjzPg0OjXNMiz4kZFCms58kty1DhFFm5VQ8CeTTNDbw1VpwD6jWqonfcmQ91uU3mr5zCYt1tK2K1dqMYmAakuT90ZlljRqb5yLHwXDzh4rdwJ8Yfhkk52pd05yCkD+roeFFM8LmHdThbqhuwX0bmIszzxb2oJaP8+nPdJjIARP3AMoEWMrMnH/rY1iAg8a/AkPD7PEvguCUDUGspnQQrQKIWwddvy+i56v+YrSSn/0qVcX4LdnW8Ay6uDMPR9EjijEsvsMZ7+1fd3r+GRjvyg5K10PbXKW/MQo9xkU5r4W8tyYi14XV5ZYvAC6UblhJqATeQhfZ+p91rIeEjhNaZ6CELjjMX4OqckMqztIKGsNW5NSffZdf98/kLiPpI3aOTYxV91HfSx4LXzYN/HCoeV4EktWfWq+XTGB8IdVcci//rVU30/KoFHzN5w2mz85oernRPh+Em2/1Rv436O96ANat4CYjQdKdWIYy+wjIKK5GqgJY5pUVEDqKmQDdVJzovSkJ6CtWvyHG++ezrELzS5oNlkpZ+DGfeJBr+VFv8SicTJlBab4Bwifyudumrmzjglu9EfgaImx0sF9zqOB91s+VHNmyMSrtvJ2z8ipoZbYmrsRaV+G6amq2jxBca/CCf0pkfoSAgJ2vAkgvLIRNlEgtTXUJBkRCOLRBUDyMykUY1pFXvyIG11fw5Or9X1yEb5m2l1kCObdLjlZoEIXK0WooXUuBp9x4mdQERPB3GShxWVJbvwDkZqW6Y422qqMgO8zbFVKzfKQGbuKRjElGfeOgjeEKXl/MrjxXMgkV2gbEZO67qMhwpAkJ7o+k4Hw669nQLoh7qWqsABovYEAKlr0N4aQGFgvZZFVkiiinmENrlT38hcwo3VcUCnyFbZTBVp169+RVknAYZcwDqm0kG39iE4eZ08POqXsgcGUObBAt570HGvd/fZ6++p0yOZx4FRBaNf3r62jbQx9W21IGhMHHzvf1+ja4nY7QqrUeYmhHeSH+A9ug0omq5Gk5YqZxrzvcEUwi/0jlNwK4bWIaE300+mJFIN+Yv1v9v3cYaAidYbwSpvn45gfwgoKldowuqC0mDQ9vZaRmmIzArE2HztnvYiAIaKgHxiePwyGYaMOrwH+7QWrBbR2Gy+A9pR0askj7HK0KIpC0N/XbB4rm1WkLp0A3hdRrrgNEDunOpZrcBmPCpo+botKhkrtsY41vyXUpgwFJ8wCsSCWsq2e+CzU0P1GFUpgFFtWfplD6RA0QdBctoFcDLdWN2B1jyx9pPHmdcwZegB3mpp8f64XYYkcA59Md8sAVQv7YMYx3N7aMBZVHAB4Uu2m3sAAAAAA=", "valaciclovir": "data:image/webp;base64,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", "b12": "data:image/webp;base64,UklGRtQAAABXRUJQVlA4IMgAAAAQCQCdASp4AFMAPnk8nkoko6MhorgIiJAPCWkAAC8ktflxIGs2mTbQlNJg6PFHj6bqhywTCjUtphLld4c1MaghktV6IMhekXTX5l51GWzPu4AA/vpeACmdbOLcufhIMZfqDZw9R6NXt/9U5gtMG+vGvLBDYipHMEq07hrJHpPqbOssik0UJXqEmH4tPUZo8g7BwjCidbYJTiIfH0c46HSDKFXzN+GLh5DqrG2NtZqvgicLpAB3V8nbTFX3+N8UE6gp6YdAAAAAAA==", "d3": "data:image/webp;base64,UklGRs4AAABXRUJQVlA4IMIAAAAQCQCdASp4AFMAPnk8nkoko6MhorgIiJAPCWkAAC8ktflxIGs2mTbQlNJg6PFHj6bqhywTCjUtphLld4c1MagkQ3SVQYUHxTQgVr8uJcS4jwAA/vpeACmdbOLcufhIMZfqDZw9R6NXt/9U5gtMG+vGvLBDYipHMEq07hrJHpPqbOssik0UJXqEmH4tPUZo8g7BwjCidbYJTiIeEr1AzWASZKbeLr5anZySO73FadhtGYBDVr26UVGpBAE2rdAAAAAAAA==", "yasmin": "data:image/webp;base64,UklGRhoGAABXRUJQVlA4IA4GAACQIACdASp4AHgAPnk0lUekoqIhKxi7OJAPCWIAzxxx/N95hqvZ/GhtzehXbaeYDzh+hm6mX0Gul+/xv/IymSnuISWDPonXKuXvX1CjZ+tlbix//k9Gw09o7JEpc20l5p2dmHFR27tpQ76WKzvYUJwPR/BpCPs8x9DbrfYjZCVDdgl3bqnZrFQcgjr+HaOox63flCTKiZhWOlwkJ8BYB2635Zv3VN30DT2o1ijc36PtWVl3tjkLL9HN1Ys3rWCwd51wK5K2OLIHgSI37YPtAvEl2UPlP4xDsWnbgxiE4K4IGqAm666aoOJ9IjvZ4VqPR3C8H2ISMGiMyfWOknZsc6FlMkX9u2noojUwRvOyAAD+/KgQsjc7x/OkXmcDRXUZj8FYk3yNlg+ji5cz2gd+SBAp3JEYQ36inhJWvuMS9xexSDePG+5bSQceYElEJ3Q3ggA/c5wZJPT69NbJzo4awKVaIugCOdNz5PFT18QqP1oSEtDVqfVLplHYjmyRq9w28nui768xOD30lMjlWdXySHhMaQcCPBkOpb52p11C6zVG5Z1sw5M0VPCv46DgRfqc2T1vaMP7mnoTSenUT3xa+XM03ZY86/CMsOtuUp6r0f+HggBLdoCIkkSk4pFhxbJG/Fd+BOVhiWGHEa1nMLmD4LxgHsNn9edaTh/e/mOFV3j+IN7GjuZT60Ea5umZL0bOCH/i3KpH7E8tN5a8RK4OylF0+CC79FM4/rgGQXcUIhNj29JGpeQ1HbTve6xpadb/NtP2FJE6AwHnC7Rj70wtjlZVrnCRmQQqwfPMHkBqYzSzRyKjy+Qn/u3eQ0+//C8vvpN8YeZQxDfvqOBCEORvAa4U3V7KEMo+k7oXhctUrCDamR/greNub5rwS2vDwnelDCK/hHxPeXAX9O+7UZZaV930f9UEqbNzdsOq/l49B7x9Z/h5njCr30TrhH1B/PcsIf9SOn/e9g2ah23ro3EhtagfsG5+EOyarNFtcgToGUcPhDYAb12RWjMqcBAb2VUuAPw+R3iCnPrVaq0LADfIKTweunXwZJYIQi7kxaq8L1+bJDYsC6drvTdvplUiE2zs5n/hBFbAmcCnj/n2y6WLCMSD1tBuSdKquz5KNRdJlIKHRf+uhn+XB+EWY++7xuVMbHFpOGYQiE7A2wAVtVz6S7kVKjCHOE2/s+ZbBJL/EnH1aIqVYnRYmNu6MNn02XiUujUrhtAcTSsyhTRGtYvisb4f9ccv0yz4ZQchOrjlRSbVOX2QVaRI9AD8evtczUpBk1BNAm7b2qpOmLvjNS2Pd25HtKNmMxrQBg4TP91icBZcKOA1gibR38g7ZTUFhyRfSt8ecHhv04mUfY2+uUdBeBqyiR7xWQaRh1N18gUox6N8lqjPw8mmK13Ot9oMZPvX8yBnJGKHRKdpmtl54C8s8BQt0dLecwJirKIttP2YUCa0UVY9SCAeSnwrZU1JhfPNnV/oehcQaUg8URVQmHFXojrESlHXOB09MisDPTRlQLK8h9XZ86ME+9I+C7PlWq1b2NlaHnrYHedf62EiXk9NASKIn1Re4W1Bm0xmZvf+ShUA8FxU2Qo85m2oIsNaKmblA2huI3d36HG0YrkIL+LUPLogj5IjoAO6gLrLC9biOlt2dEIJtabcJcsA34VQcSff3aw1Fa4s4IVD/L/JXZf9p2o4a0Lqkjo39L+9eV5XS+Pro1pB52Lj2QtEw6HMD42ajbvEwQBrEya3TbkxLxOXWbbx4oQlS0x9rUQSVnnfRJDex+qRWBq7XE8frNdiCkjjF1yVJiVLIk2vO7yesja6DfseiQmRYg/yIaqIl2i+O4ewJvXv0nXLz4c2+Rf36etLDQ3lXugSDzsR9AP41crcrkX4H9JrwPFqZ23cOaODB28rRFNXyImngthFBTvQd1/RXJewrhRnEntDPE5fL7mqLtsjACj0XpSmnhZOzRn351x3+TTp82Qmki3ZBd4P7R8AiOK79rp6LX+o2D0T6tYz6jt79uquno2dnqQB+MZYW4z3y95OQITcWPCfwAzk/XajIHBnLJqEyI/FMMEH8gAAAA=="};
+/* sku: [cadence label, sku code, price, units?] */
+const PRODUCTS = [
+ // ---- BIRTH CONTROL ----
+ {id:"diane",n:"Diane-35 (21 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Helps with excessive hair growth, acne and irregular periods.",ins:"Take 1 tablet by mouth daily for 21 days, then 7 days where you don't take any tablets.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR OCP DIANE 35 28D",49],["84-day subscription","PR OCP DIANE 35 84D",138],["6-month subscription","PR OCP DIANE 35 6M",210]]},
+ {id:"drspra",n:"Drspra Pill (28 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Helps with premenstrual dysphoric disorder (PMDD) and with acne. 22% cheaper than branded pill.",ins:"Take one tablet by mouth every day for 28 days according to the arrows on the blister pack. Begin the next course immediately. Take with or after food. Avoid use if pregnant.",dos:"1 tablet",f:"Once daily",s:[["84-day subscription","PR BC DROSPERA 3 84D",78],["6-month subscription","PR BC DROSPERA 6 6M",114]]},
+ {id:"estelle",n:"Estelle (21 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Helps with excessive hair growth and acne.",ins:"Take 1 tablet by mouth daily for 21 days, followed by 7 tablet-free days.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR OCP ESTELLE 28D",49],["84-day subscription","PR OCP ESTELLE 84D",138],["6-month subscription","PR OCP ESTELLE 6M",180]]},
+ {id:"evra",n:"Evra Patch (3 Patches)",c:"bc",t:"Rx",g:"patch",d:"A patch that is applied on a weekly basis to stop ovulation.",ins:"Apply 1 patch on skin every week for three weeks — 21 total days. Week four is patch-free.",dos:"1 patch once a week",f:"When required",s:[["28-day subscription","PR OCP EVRA PATCH 28D",59],["84-day subscription","PR OCP EVRA PATCH 84D",168],["6-month subscription","PR OCP EVRA PATCH 6M",240]]},
+ {id:"gvza",n:"Gvza Pill (21 Tablets)",c:"bc",t:"Rx",g:"blister",d:"A good option if you get breast tenderness as a side effect when taking Microgynon. 34% cheaper than branded pill.",ins:"Take one tablet once daily for 21 consecutive days and break for 7 days. Begin the next course after the 7-day pill-free period (on the 8th day). Take with or after food. Avoid use if pregnant.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR BC GVEZA 28D",32],["84-day subscription","PR BC GVEZA 3 84D",87],["6-month subscription","PR BC GVEZA 6 6M",114]]},
+ {id:"jstnd",n:"Jstnd (28 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Helps with premenstrual dysphoric disorder (PMDD) and with acne. 40% cheaper than branded pill.",ins:"Take one tablet every morning for 28 days according to the arrows on the blister pack. Begin the next course immediately. Take with or after food. Avoid use if pregnant.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR BC JASTINDA 28D",32],["84-day subscription","PR BC JASTINDA 3 84D",87],["6-month subscription","PR BC JASTINDA 6 6M",114]]},
+ {id:"mercilon",n:"Mercilon (21 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Helps with menstrual headaches.",ins:"Take 1 tablet by mouth daily for 21 days, then followed by 7 days where you take no tablets.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR OCP MERCILON 28D",43],["84-day subscription","PR OCP MERCILON 84D",123],["6-month subscription","PR OCP MERCILON 6M",180]]},
+ {id:"microgynon",n:"Microgynon (21 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Can help reduce period cramps and lighten the flow.",ins:"Take one tablet every day for 21 days, followed by 7 days where you take no tablets.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR OCP MICRGYN 28D",27],["84-day subscription","PR OCP MICRGYN 84D",72],["168-day subscription","PR OCP MICRGYN 168D",108]]},
+ {id:"slnd",n:"Slnd Pill (28 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Estrogen-free oral contraceptive. Suitable for women who wish to or need to avoid estrogen.",ins:"Take one tablet by mouth every day for 28 days according to the arrows on the blister pack. Begin the next course immediately. Take with or after food. Avoid use if pregnant.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR BC SLINDA 28D",58],["84-day subscription","PR BC SLINDA 3 84D",156],["168-day subscription","PR BC SLINDA 168D",288]]},
+ {id:"yasmin",n:"Yasmin (21 Tablets)",c:"bc",t:"Rx",g:"blister",d:"A good option if you get breast tenderness as a side effect when taking Microgynon.",ins:"Take 1 tablet by mouth daily for 21 days, followed by 7 tablet-free days.",dos:"1 tablet",f:"Once daily",s:[["28-day subscription","PR OCP YASMIN 28D",49],["84-day subscription","PR OCP YASMIN 84D",138],["6-month subscription","PR OCP YASMIN 6M",204]]},
+ {id:"noreth",n:"Norethistherone 5mg (30/60 Tablets)",c:"bc",t:"Rx",g:"blister",d:"Pill that delays your period by a maximum of 17 days.",ins:"Take 1 pill (5mg) 3 times a day, starting 3 days before your period is due to start. Your period will usually start within 3 days of stopping the pills. Do not take pills for more than 20 days. Avoid use if pregnant.",dos:"3 tablets (1 is 5mg each)",f:"Once daily",s:[["One-time purchase · 3 units","PR SH SUNO 5 OT",32]]},
+ // ---- EMERGENCY ----
+ {id:"ella",n:"Ella (1 Tablet)",c:"ec",t:"Rx",g:"capsule",d:"Use within 120 hours (5 days) of unprotected sex.",ins:"Take one tablet (30mg) by mouth as soon as possible and no later than 120 hours (5 days) after you have had unprotected sex.",dos:"1 tablet (30mg)",f:"Immediately",s:[["One-time purchase","PR OCP ELLA 30MG OT",54]]},
+ {id:"ellatest",n:"Ella + Digital Pregnancy Test",c:"ec",t:"Rx",g:"test",d:"Use within 120 hours (5 days) of unprotected sex. The digital pregnancy test is over 99% accurate with a written conception indicator.",ins:"Take one tablet (30mg) by mouth as soon as possible and no later than 120 hours (5 days) after you have had unprotected sex.",dos:"1 tablet (30mg)",f:"Immediately",s:[["One-time purchase","PR OCP ELLA 30MG TEST OT",81]]},
+ {id:"postinor",n:"Postinor-2",c:"ec",t:"Rx",g:"capsule",d:"Use within 72 hours (3 days) of unprotected sex.",ins:"Take one (750 µg) tablet by mouth as soon as possible within 72 hours after unprotected sex. Take a second (750 µg) tablet 12 hours after the first dose.",dos:"1 tablet (750 µg)",f:"Twice daily",s:[["One-time purchase","PR OCP POSTINOR OT",25]]},
+ {id:"postinortest",n:"Postinor-2 + Digital Pregnancy Test",c:"ec",t:"Rx",g:"test",d:"Use within 72 hours (3 days) of unprotected sex. The digital pregnancy test is over 99% accurate with a written conception indicator.",ins:"Take one (750 µg) tablet by mouth as soon as possible within 72 hours after unprotected sex. Take a second (750 µg) tablet 12 hours after the first dose.",dos:"1 tablet (750 µg)",f:"Twice daily",s:[["One-time purchase","PR OCP POSTINOR TEST OT",54]]},
+ // ---- WEIGHT LOSS ----
+ {id:"mounjaro25",n:"Mounjaro 2.5mg",c:"wl",t:"Rx",g:"pen",d:"Tirzepatide starting dose — weekly injectable for weight management.",ins:"Inject once weekly as directed.",dos:"2.5mg weekly",f:"Once daily",s:[["28-day subscription","RX WL MOUNJARO2.5MG 1 28D",495],["One-time purchase","RX WL MOUNJARO2.5MG OT",495]]},
+ {id:"mounjaro5",n:"Mounjaro 5mg",c:"wl",t:"Rx",g:"pen",d:"Tirzepatide step-up dose — weekly injectable for weight management.",ins:"Inject once weekly as directed.",dos:"5mg weekly",f:"Once daily",s:[["28-day subscription","RX WL MOUNJARO5MG 1 28D",675],["One-time purchase","RX WL MOUNJARO5MG OT",675]]},
+ {id:"mounjaro75",n:"Mounjaro 7.5mg",c:"wl",t:"Rx",g:"pen",d:"Tirzepatide maintenance dose — weekly injectable for weight management.",ins:"Inject once weekly as directed.",dos:"7.5mg weekly",f:"Once daily",s:[["28-day subscription","RX WL MOUNJARO7.5MG 1 28D",795],["One-time purchase","RX WL MOUNJARO7.5MG OT",795]]},
+ {id:"mounjaro10",n:"Mounjaro 10mg",c:"wl",t:"Rx",g:"pen",d:"Tirzepatide higher maintenance dose — weekly injectable for weight management.",ins:"Inject once weekly as directed.",dos:"10mg weekly",f:"Once daily",s:[["28-day subscription","RX WL MOUNJARO10MG 1 28D",795],["One-time purchase","RX WL MOUNJARO10MG OT",795]]},
+ {id:"ozempic",n:"Ozempic",c:"wl",t:"Rx",g:"pen",d:"Semaglutide weekly injectable pen.",ins:"Inject once weekly as directed.",dos:"1mg weekly",f:"Once daily",s:[["One-time purchase · 3 units","RX WL OZEMPIC1MG OT",1140]]},
+ {id:"wegovy025",n:"Wegovy 0.25mg",c:"wl",t:"Rx",g:"pen",d:"Semaglutide starting dose — weekly injectable for weight management.",ins:"Inject once weekly as directed.",dos:"0.25mg weekly",f:"Once daily",s:[["One-time purchase","RX WL WEGOVY 0.25MG OT",380],["1-month subscription","RX WL WEGOVY 0.25MG 1M",380]]},
+ {id:"wegovy17",n:"Wegovy 1.7mg",c:"wl",t:"Rx",g:"pen",d:"Semaglutide step-up dose — weekly injectable for weight management.",ins:"Inject once weekly as directed.",dos:"1.7mg weekly",f:"Once daily",s:[["One-time purchase","RX WL WEGOVY 1.7MG OT",660],["1-month subscription","RX WL WEGOVY 1.7MG 1M",660]]},
+ {id:"wegovy24",n:"Wegovy 2.4mg",c:"wl",t:"Rx",g:"pen",d:"Semaglutide full maintenance dose — weekly injectable for weight management.",ins:"Inject once weekly as directed.",dos:"2.4mg weekly",f:"Once daily",s:[["One-time purchase","RX WL WEGOVY 2.4MG OT",660],["1-month subscription","RX WL WEGOVY 2.4MG 1M",660]]},
+ {id:"duromine",n:"Phentermine — Duromine 15mg",c:"wl",t:"Rx",g:"capsule",d:"Appetite suppressant that reduces feelings of hunger, thereby limiting calorie intake for weight loss.",ins:"Take as directed by your doctor.",dos:"15mg",f:"Once daily",s:[["One-time purchase · 1 unit","PR WL DUROMINE 15MG OT",65],["One-time purchase · 3 units","PR WL DUROMINE 15MG OT×3",195]]},
+ {id:"wlkit",n:"Weight Loss Holistic Kit",c:"wl",t:"Rx",g:"kit",d:"A complete holistic starter kit for a medically-guided weight loss journey.",ins:"Use kit components as directed.",dos:"Per component",f:"Once daily",s:[["One-time purchase","PR WL HOLISTIC KIT OT",440]]},
+ {id:"wlprogram",n:"Weight Loss Program — Wegovy",c:"wl",t:"Rx",g:"kit",d:"Structured monthly program. Kit contains Wegovy.",ins:"Follow program schedule with clinical check-ins.",dos:"Per program",f:"Once daily",s:[["1-month subscription","RX WL WEGOVY025MG OVAPROGRAM 1M",475]]},
+ {id:"glp1kit",n:"GLP-1 Performance Booster Kit",c:"wl",t:"nRx",g:"kit",d:"Supplement companion kit to support patients on GLP-1 therapy.",ins:"Take daily alongside GLP-1 treatment.",dos:"Per kit",f:"Once daily",s:[["One-time purchase","NPR OVA GLP1 BOOST KIT OT",110],["1-month subscription","NPR OVA GLP1 BOOST KIT 1M",110],["3-month subscription","NPR OVA GLP1 BOOST KIT 3M",315],["6-month subscription","NPR OVA GLP1 BOOST KIT 6M",570]]},
+ // ---- SUPPLEMENTS ----
+ {id:"chromium",n:"Chromium Booster",c:"supp",t:"nRx",g:"powder",d:"Daily chromium supplement supporting glucose metabolism.",ins:"Take once daily with food.",dos:"1 capsule",f:"Once daily",s:[["One-time purchase","NPR OVA SUPP CHROMIUM OT",25],["1-month subscription","NPR OVA SUPP CHROMIUM 1M",25],["3-month subscription","NPR OVA SUPP CHROMIUM 3M",69]]},
+ {id:"coq10",n:"Coenzym Q10 Booster",c:"supp",t:"nRx",g:"powder",d:"Daily CoQ10 supplement for cellular energy support.",ins:"Take once daily with food.",dos:"1 capsule",f:"Once daily",s:[["1-month subscription","NPR OVA SUPP COQ10 1M",50],["3-month subscription","NPR OVA SUPP COQ10 3M",138],["6-month subscription","NPR OVA SUPP COQ10 6M",240]]},
+ {id:"b12",n:"Vitamin B12 Booster",c:"supp",t:"nRx",g:"powder",d:"Daily B12 supplement for energy and nerve health.",ins:"Take once daily.",dos:"1 capsule",f:"Once daily",s:[["One-time purchase","NPR OVA SUPP VIT B12 OT",25],["1-month subscription","NPR OVA SUPP VIT B12 1M",25],["3-month subscription","NPR OVA SUPP VIT B12 3M",69],["6-month subscription","NPR OVA SUPP VIT B12 6M",120]]},
+ {id:"d3",n:"Vitamin D3 Booster",c:"supp",t:"nRx",g:"powder",d:"Daily D3 supplement for bone and immune support.",ins:"Take once daily with food.",dos:"1 capsule",f:"Once daily",s:[["One-time purchase","NPR OVA SUPP VIT D3 OT",25],["1-month subscription","NPR OVA SUPP VIT D3 1M",25],["3-month subscription","NPR OVA SUPP VIT D3 3M",69],["6-month subscription","NPR OVA SUPP VIT D3 6M",120]]},
+ {id:"greens",n:"Super Greens Powder",c:"supp",t:"nRx",g:"powder",d:"Daily greens blend for micronutrient coverage.",ins:"Mix one scoop into water daily.",dos:"1 scoop",f:"Once daily",s:[["One-time purchase","NPR OVA GREENS POWDER OT",59],["3-month subscription","NPR OVA GREENS POWDER 3M",165]]},
+ // ---- GENERAL CARE ----
+ {id:"adapalene",n:"0.1% Adapalene (Differin) Cream",c:"gen",t:"Rx",g:"tube",d:"Topical cream used to treat acne and rosacea to improve skin clarity.",ins:"Apply a thin film to the entire face and other affected areas of the skin at bedtime after washing gently with non-medicated soap.",dos:"1 application",f:"Once daily",s:[["1-month subscription","PR SC DIF CR 0.1 1M",48],["3-month subscription","PR SC DIF CR 0.1 3M",144],["6-month subscription","PR SC DIF CR 0.16 6M",246]]},
+ {id:"acetaminophen",n:"Acetaminophen (20 Tablets)",c:"gen",t:"Rx",g:"blister",d:"An anti-inflammatory oral treatment to help with aches and tenderness during the menstrual cycle.",ins:"Take 2 tablets (1g) by mouth every 6 hours as needed for pain.",dos:"2 tablets (1g)",f:"Three times a day",s:[["One-time purchase","PR SH ACETA 500 OT",9]]},
+ {id:"acyclovir",n:"Acyclovir Cream (1 Tube)",c:"gen",t:"Rx",g:"tube",d:"Topical cream that speeds up healing and symptoms such as tingling.",ins:"Apply a thin layer to the affected area up to 5 times a day when you feel cold sore symptoms coming on (e.g. tingling, pain, burning or blisters) for 5 to 10 days.",dos:"1 application",f:"Once daily",s:[["One-time purchase","PR SH ACY CR 5 OT",17]]},
+ {id:"fluconazole",n:"Fluconazole (Diflucan) 150mg",c:"gen",t:"Rx",g:"capsule",d:"An antifungal used to treat yeast infection symptoms like itching, redness, swelling and burning sensations.",ins:"Take 1 tablet (150mg) by mouth once.",dos:"1 tablet (150mg)",f:"Immediately",s:[["One-time purchase","PR SH FLUCO 150 OT",26]]},
+ {id:"metoclopramide",n:"Metoclopramide 10mg (10 Tablets)",c:"gen",t:"Rx",g:"blister",d:"An oral treatment used to prevent nausea and vomiting as well as for headaches.",ins:"Take 1 tablet (10mg) by mouth up to 3-hourly, as needed for nausea/vomiting. For a maximum of 5 days.",dos:"1 tablet (10mg)",f:"Once daily",s:[["One-time purchase","PR SH METOCLO 10 OT",16]]},
+ {id:"neopenotran",n:"Neo-Penotran Vaginal Pessaries",c:"gen",t:"Rx",g:"pessary",d:"A vaginal pessary that treats vaginal candidiasis or mixed vaginal infections by inhibiting the growth of fungi and bacteria.",ins:"Insert 1 pessary at night and in the morning for 7 days. In recurrence cases, application of 1 pessary at night and in the morning for 14 days is recommended.",dos:"1 vaginal tablet",f:"Once daily",s:[["One-time purchase · 1 unit","PR SH N PENOTRAN OT",70],["One-time purchase · 2 units","PR SH N PENOTRAN 1 OT×2",140]]},
+ {id:"valaciclovir",n:"Valaciclovir (14 Tablets)",c:"gen",t:"Rx",g:"blister",d:"An antiviral oral treatment that slows the growth and spread of the herpes virus, giving your body more time to fight it.",ins:"For genital herpes, first outbreak: take 1 tablet (500mg) by mouth twice a day for 5 days and up to a period of 10 days if severe (20 tablets). Recurrent outbreaks: take 1 tab.",dos:"500mg",f:"Once daily",s:[["One-time purchase","PR SH VALACY 500 OT",65]]},
+ // ---- DEVICES & RETAIL ----
+ {id:"scale",n:"BMI Smart Weighing Scale",c:"retail",t:"nRx",g:"scale",d:"Smart scale that syncs weight readings for BMI tracking.",ins:"Weigh at the same time each day for consistent readings.",dos:"—",f:"Once daily",s:[["One-time purchase","NPR WL BMI OVA WEIGHING SCALE OT",59]]},
+ {id:"pregtest",n:"Digital Pregnancy Test",c:"retail",t:"nRx",g:"test",d:"Digital test, over 99% accurate with a written conception indicator.",ins:"Place the test device horizontally onto the desk. Use the pipettes supplied with the kit to add 3 drops of urine/serum into the small window at the lower part of the device. Wait until each drop is completely soaked before adding the next drop.",dos:"—",f:"Once daily",s:[["One-time purchase","NPR BC PREG TEST OT",27]]},
+ {id:"pouch",n:"Embroidered Puffy Pouch",c:"retail",t:"nRx",g:"pouch",d:"Discreet embroidered pouch for storing medication.",ins:"—",dos:"—",f:"Once daily",s:[["One-time purchase","NPR OVA POUCH OT",20]]},
+ // ---- ADMIN ----
+ {id:"noshow",n:"No Show Fee",c:"admin",t:"nRx",g:"fee",d:"Administrative fee applied for missed appointments.",ins:"—",dos:"—",f:"Once daily",s:[["One-time purchase","NO SHOW FEE OT",20]]},
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  cart:[],            // {pid, skuIdx, qty}
+  planCreated:false,
+  charged:false,
+  notified:false,
+  ended:false,
+  callStarted:null,
+  filterCat:"all",
+  filterType:"all",
+  query:"",
+};
+const $ = s=>document.querySelector(s);
+const money = v=>"S$"+v.toFixed(2);
+const now = ()=>new Date().toLocaleTimeString("en-SG",{hour:"numeric",minute:"2-digit",hour12:true});
+const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ============================================================
+   RENDER — category rail + formulary grid
+   ============================================================ */
+function renderCats(){
+  const counts = {};
+  PRODUCTS.forEach(p=>counts[p.c]=(counts[p.c]||0)+1);
+  let html = `<button class="cat-pill ${state.filterCat==="all"?"on":""}" data-cat="all">All products <span class="n">${PRODUCTS.length}</span></button>`;
+  for(const [k,c] of Object.entries(CATS)){
+    html += `<button class="cat-pill ${state.filterCat===k?"on":""}" data-cat="${k}">
+      <span class="swatch" style="background:${c.color}"></span>${c.name} <span class="n">${counts[k]||0}</span></button>`;
+  }
+  $("#catRail").innerHTML = html;
+}
+function cardHTML(p){
+  const inCart = state.cart.filter(i=>i.pid===p.id).reduce((a,i)=>a+i.qty,0);
+  const skus = p.s.map((s,i)=>`
+    <button class="sku-row" data-pid="${p.id}" data-sku="${i}" ${state.ended?"disabled":""}>
+      <span class="sku-info">
+        <span class="sku-cad">${s[0]}</span>
+        <span class="sku-code" style="display:block">${s[1]}</span>
+      </span>
+      <span class="sku-right">
+        <span class="sku-price">${money(s[2])}</span>
+        <span class="sku-add">+</span>
+      </span>
+    </button>`).join("");
+  const details = (p.ins&&p.ins!=="—")?`
+    <details class="p-details">
+      <summary>Clinical notes <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="p-details-body">
+        <b>Instructions.</b> ${p.ins}
+        ${p.dos&&p.dos!=="—"?`<br><b>Dosage.</b> ${p.dos}`:""}
+        ${p.f?` · <b>Frequency.</b> ${p.f}`:""}
+      </div>
+    </details>`:`<div class="p-details" style="border-top:none;margin-top:auto"></div>`;
+  return `<article class="p-card reveal cat-${p.c}" data-id="${p.id}">
+    <div class="p-head">
+      <div class="p-thumb">${IMGS[p.id]?`<img src="${IMGS[p.id]}" alt="${p.n}" loading="lazy">`:`<span>${p.n[0]}</span>`}</div>
+      <div class="p-title-wrap">
+        <h3 class="p-name">${p.n}</h3>
+        <div class="p-badges">
+          <span class="type-badge ${p.t==="Rx"?"rx":"nrx"}">${p.t}</span>
+          ${inCart?`<span class="in-plan-badge">In plan ·${inCart}</span>`:""}
+        </div>
+      </div>
+    </div>
+    <p class="p-desc">${p.d}</p>
+    ${details}
+    <div class="sku-list">${skus}</div>
+  </article>`;
+}
+function filtered(){
+  const q = state.query.trim().toLowerCase();
+  return PRODUCTS.filter(p=>{
+    if(state.filterCat!=="all" && p.c!==state.filterCat) return false;
+    if(state.filterType!=="all" && p.t!==state.filterType) return false;
+    if(q && !(p.n+" "+p.d+" "+p.s.map(s=>s[1]).join(" ")).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+function renderGrid(){
+  const list = filtered();
+  $("#productGrid").innerHTML = list.length
+    ? list.map(cardHTML).join("")
+    : `<div class="no-results"><b>Nothing matches</b>Try a different name, SKU code, or category</div>`;
+  $("#formularyCount").textContent = `· ${list.length} of ${PRODUCTS.length} products`;
+  observeReveals();
+}
+
+/* ============================================================
+   CART / PLAN
+   ============================================================ */
+function cartTotal(){ return state.cart.reduce((a,i)=>a+PRODUCTS.find(p=>p.id===i.pid).s[i.skuIdx][2]*i.qty,0); }
+function addToCart(pid, skuIdx, fromEl){
+  if(state.ended) return;
+  const found = state.cart.find(i=>i.pid===pid&&i.skuIdx===skuIdx);
+  if(found) found.qty++;
+  else state.cart.push({pid,skuIdx,qty:1});
+  if(state.planCreated){ state.planCreated=false; state.charged=false; } // edits reopen the plan
+  const p = PRODUCTS.find(x=>x.id===pid);
+  toast(`${p.n} — ${p.s[skuIdx][0]} added`);
+  syncAll();
+}
+function setQty(pid,skuIdx,delta){
+  const i = state.cart.findIndex(x=>x.pid===pid&&x.skuIdx===skuIdx);
+  if(i<0) return;
+  state.cart[i].qty += delta;
+  if(state.cart[i].qty<=0){
+    const el = document.querySelector(`.plan-item[data-key="${pid}-${skuIdx}"]`);
+    state.cart.splice(i,1);
+    if(el && !prefersReduced){ el.classList.add("removing"); setTimeout(syncAll,320); return; }
+  }
+  if(state.planCreated){ state.planCreated=false; state.charged=false; }
+  syncAll();
+}
+let lastTotal = 0;
+function renderPlan(){
+  const items = $("#planItems");
+  $("#planEmpty").style.display = state.cart.length?"none":"flex";
+  items.innerHTML = state.cart.map(i=>{
+    const p = PRODUCTS.find(x=>x.id===i.pid), s = p.s[i.skuIdx];
+    return `<div class="plan-item" data-key="${i.pid}-${i.skuIdx}">
+      <div class="plan-item-info">
+        <div class="plan-item-name">${p.n}</div>
+        <div class="plan-item-cad">${s[0]}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" data-q="-1" data-pid="${i.pid}" data-sku="${i.skuIdx}" aria-label="Decrease quantity">−</button>
+        <span class="qty-n">${i.qty}</span>
+        <button class="qty-btn" data-q="1" data-pid="${i.pid}" data-sku="${i.skuIdx}" aria-label="Increase quantity">+</button>
+      </div>
+      <div class="plan-item-price">${money(s[2]*i.qty)}</div>
+    </div>`;
+  }).join("");
+  const n = state.cart.reduce((a,i)=>a+i.qty,0);
+  $("#planCount").textContent = `${n} item${n===1?"":"s"}`;
+  animateTotal(cartTotal());
+}
+function animateTotal(target){
+  const el = $("#totalVal");
+  if(prefersReduced){ el.innerHTML = `<span class="cur">S$</span>${target.toFixed(2)}`; lastTotal=target; return; }
+  const from = lastTotal, t0 = performance.now(), dur = 650;
+  function tick(t){
+    const k = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-k,4);
+    el.innerHTML = `<span class="cur">S$</span>${(from+(target-from)*e).toFixed(2)}`;
+    if(k<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  lastTotal = target;
+}
+
+/* gating + stepper + progress */
+function syncButtons(){
+  const has = state.cart.length>0;
+  $("#createBtn").disabled = !has || state.planCreated || state.ended;
+  $("#chargeBtn").disabled = !state.planCreated || state.charged || state.ended;
+  $("#notifyBtn").disabled = !state.planCreated || state.ended;
+  $("#callBtn").disabled = !!state.callStarted || state.ended;
+  $("#endBtn").disabled = state.ended;
+  const cb = $("#createBtn");
+  if(state.planCreated){
+    cb.classList.add("created");
+    cb.querySelector("span").textContent = "Plan created";
+    cb.disabled = true;
+  } else {
+    cb.classList.remove("created");
+    cb.querySelector("span").textContent = "Create plan";
+  }
+  $("#ps-build").classList.toggle("done",has);
+  $("#ps-create").classList.toggle("done",state.planCreated);
+  $("#ps-charge").classList.toggle("done",state.charged);
+  $("#ps-notify").classList.toggle("done",state.notified);
+  // header stepper
+  const steps = document.querySelectorAll(".stepper .step");
+  const order = ["review","consult","plan","charge","close"];
+  let current = state.ended?"close":state.charged?"charge":(has||state.planCreated)?"plan":"consult";
+  steps.forEach(s=>{
+    const i = order.indexOf(s.dataset.step), ci = order.indexOf(current);
+    s.classList.toggle("done", i<ci);
+    s.classList.toggle("active", i===ci);
+  });
+  // status pill
+  const pill = $("#statusPill"), txt = $("#statusText");
+  if(state.ended){ pill.className="status-pill ended"; txt.textContent="Consultation ended"; }
+  else if(state.charged){ pill.className="status-pill charged"; txt.textContent="Charged · Fulfilment"; }
+  else if(state.planCreated){ pill.className="status-pill"; txt.textContent="Plan created"; }
+  else { pill.className="status-pill"; txt.textContent="Registered"; }
+}
+function syncAll(){ renderPlan(); syncButtons(); renderGrid(); }
+
+/* ============================================================
+   MICRO-INTERACTIONS
+   ============================================================ */
+function toast(msg,tone){
+  const root = $("#toastRoot");
+  const t = document.createElement("div");
+  t.className = "toast"+(tone?" "+tone:"");
+  t.innerHTML = `<span class="t-dot"></span><span>${msg}</span>`;
+  root.appendChild(t);
+  setTimeout(()=>{t.classList.add("out");setTimeout(()=>t.remove(),480)},2600);
+}
+function logEvent(text,tone){
+  const li = document.createElement("div");
+  li.className = "log-item"+(tone?" "+tone:"");
+  li.innerHTML = `<span class="log-text">${text}</span><span class="log-time">${now()}</span>`;
+  $("#logList").prepend(li);
+}
+/* reveal on scroll */
+let io;
+function observeReveals(){
+  if(!io){
+    io = new IntersectionObserver(es=>es.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+    }),{threshold:.06,rootMargin:"0px 0px -4% 0px"});
+  }
+  document.querySelectorAll(".reveal:not(.in)").forEach(el=>io.observe(el));
+}
+
+/* ============================================================
+   WIRING
+   ============================================================ */
+// catalog events (delegated)
+$("#catRail").addEventListener("click",e=>{
+  const b = e.target.closest(".cat-pill"); if(!b) return;
+  state.filterCat = b.dataset.cat; renderCats(); renderGrid();
+});
+$("#typeSeg").addEventListener("click",e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  state.filterType = b.dataset.type;
+  document.querySelectorAll("#typeSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  renderGrid();
+});
+$("#searchIn").addEventListener("input",e=>{ state.query = e.target.value; renderGrid(); });
+$("#productGrid").addEventListener("click",e=>{
+  const row = e.target.closest(".sku-row"); if(!row) return;
+  addToCart(row.dataset.pid,+row.dataset.sku,row);
+});
+$("#planBody").addEventListener("click",e=>{
+  const q = e.target.closest(".qty-btn"); if(!q) return;
+  setQty(q.dataset.pid,+q.dataset.sku,+q.dataset.q);
+});
+
+// vitals + BMI
+function calcBMI(){
+  const h = parseFloat($("#heightIn").value)/100, w = parseFloat($("#weightIn").value);
+  const track = $("#bmiTrack"), val = $("#bmiVal"), cls = $("#bmiClass");
+  if(!h||!w||h<=0){ val.innerHTML='<span class="empty">—</span>'; cls.innerHTML="&nbsp;"; track.classList.remove("live"); return; }
+  const bmi = w/(h*h);
+  val.textContent = bmi.toFixed(1);
+  let label,color;
+  if(bmi<18.5){label="Underweight";color="#4A96BE"}
+  else if(bmi<23){label="Healthy range";color="#2E8F63"}      // Asian-population cutoffs (SG)
+  else if(bmi<27.5){label="Overweight";color="#B8892E"}
+  else {label="Obese — review indicated";color="#C2603F"}
+  cls.textContent = label; cls.style.color = color;
+  track.classList.add("live");
+  const pct = Math.min(97,Math.max(3,((bmi-14)/(40-14))*100));
+  $("#bmiMarker").style.left = pct+"%";
+}
+$("#heightIn").addEventListener("input",calcBMI);
+$("#weightIn").addEventListener("input",calcBMI);
+
+// conditions
+const conds = [];
+function renderConds(){
+  $("#condChips").innerHTML = conds.map((c,i)=>`
+    <span class="cond-chip">${c}
+      <button data-i="${i}" aria-label="Remove ${c}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </span>`).join("");
+}
+$("#condChips").addEventListener("click",e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  conds.splice(+b.dataset.i,1); renderConds();
+});
+$("#addCondBtn").addEventListener("click",()=>{
+  $("#condInput").classList.add("on"); $("#condInput").focus();
+});
+$("#condInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&e.target.value.trim()){
+    conds.push(e.target.value.trim()); renderConds();
+    logEvent(`Medical condition recorded — ${e.target.value.trim()}`);
+    e.target.value="";
+  }
+  if(e.key==="Escape"){ e.target.classList.remove("on"); }
+});
+
+// hero actions
+$("#editNameBtn").addEventListener("click",()=>{
+  const el = $("#patientName");
+  const editing = el.getAttribute("contenteditable")==="true";
+  if(editing){ el.setAttribute("contenteditable","false"); logEvent(`Patient name updated — "${el.textContent.trim()}"`); toast("Patient name saved"); }
+  else { el.setAttribute("contenteditable","true"); el.focus(); document.getSelection().selectAllChildren(el); }
+});
+$("#patientName").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){ e.preventDefault(); $("#editNameBtn").click(); }
+});
+$("#nameHistoryBtn").addEventListener("click",()=>toast("Name audit log — 0 previous changes"));
+$("#activityBtn").addEventListener("click",()=>{ toast("Opening user activity log…"); logEvent("User activity log viewed"); });
+$("#newMcBtn").addEventListener("click",addMC);
+$("#mcBtn").addEventListener("click",addMC);
+let mcCount = 0;
+function addMC(){
+  mcCount++;
+  $("#mcEmpty").style.display="none";
+  const d = document.createElement("div");
+  d.className="record-item";
+  d.innerHTML = `MC-2026-${String(198000+mcCount).slice(-4)} · 1 day <span>${now()}</span>`;
+  $("#mcList").appendChild(d);
+  logEvent("Medical certificate issued");
+  toast("Medical certificate created");
+}
+let rxCount = 0;
+$("#manualRxBtn").addEventListener("click",()=>{
+  rxCount++;
+  $("#rxEmpty").style.display="none";
+  const d = document.createElement("div");
+  d.className="record-item";
+  d.innerHTML = `Manual Rx #${rxCount} — pending details <span>${now()}</span>`;
+  $("#rxList").appendChild(d);
+  logEvent("Manual prescription entry added");
+});
+$("#ineligibleBtn").addEventListener("click",()=>{
+  const r = $("#ineligibleReason").value;
+  if(!r){ toast("Select an ineligibility reason first","amber"); $("#ineligibleReason").focus(); return; }
+  logEvent(`Marked ineligible — ${r}`,"warn");
+  toast(`Patient marked ineligible: ${r}`,"amber");
+});
+
+// plan actions
+$("#createBtn").addEventListener("click",()=>{
+  if(!state.cart.length) return;
+  state.planCreated = true;
+  logEvent(`Treatment plan created — ${state.cart.reduce((a,i)=>a+i.qty,0)} item(s), ${money(cartTotal())}`);
+  toast("Plan locked in — charge & notify unlocked");
+  syncAll();
+});
+$("#chargeBtn").addEventListener("click",()=>{
+  $("#chargeAmount").textContent = money(cartTotal());
+  openOverlay("#chargeDialog");
+});
+$("#chargeCancel").addEventListener("click",()=>closeOverlay("#chargeDialog"));
+$("#chargeConfirm").addEventListener("click",()=>{
+  closeOverlay("#chargeDialog");
+  state.charged = true;
+  logEvent(`Payment charged — ${money(cartTotal())}`,"warn");
+  toast(`Charged ${money(cartTotal())} — receipt generated`,"amber");
+  syncAll();
+});
+$("#notifyBtn").addEventListener("click",()=>{
+  state.notified = true;
+  logEvent("Plan sent to patient — Email / WhatsApp");
+  toast("Plan copy sent via Email & WhatsApp");
+  syncAll();
+});
+$("#callBtn").addEventListener("click",()=>{
+  state.callStarted = Date.now();
+  $("#timerChip").classList.add("on");
+  logEvent("Consultation call started");
+  toast("Call start logged — timer running");
+  syncButtons();
+  setInterval(()=>{
+    if(!state.callStarted||state.ended) return;
+    const s = Math.floor((Date.now()-state.callStarted)/1000);
+    $("#timerVal").textContent = String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+  },1000);
+});
+// hold-to-end
+const endBtn = $("#endBtn");
+let holdTimer = null;
+function startHold(e){
+  if(state.ended) return;
+  if(!state.planCreated && !$("#planNote").value.trim() && !state.cart.length){
+    toast("Add a plan — or note the reason for ending without one","amber");
+    $("#planNote").focus();
+    return;
+  }
+  endBtn.classList.add("holding");
+  holdTimer = setTimeout(endConsult,1100);
+}
+function cancelHold(){ endBtn.classList.remove("holding"); clearTimeout(holdTimer); }
+endBtn.addEventListener("pointerdown",startHold);
+endBtn.addEventListener("pointerup",cancelHold);
+endBtn.addEventListener("pointerleave",cancelHold);
+endBtn.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); startHold(); }});
+endBtn.addEventListener("keyup",cancelHold);
+function endConsult(){
+  cancelHold();
+  state.ended = true;
+  const note = $("#planNote").value.trim();
+  logEvent(`Consultation ended${note&&!state.planCreated?` — "${note}"`:""}`,"danger");
+  toast("Consultation closed","red");
+  endBtn.querySelector("span").textContent = "Consultation ended";
+  document.querySelectorAll(".sku-row").forEach(b=>b.disabled=true);
+  syncButtons();
+}
+
+/* overlays */
+function openOverlay(sel){
+  const o = $(sel); o.classList.add("open");
+  requestAnimationFrame(()=>o.classList.add("vis"));
+}
+function closeOverlay(sel){
+  const o = $(sel); o.classList.remove("vis");
+  setTimeout(()=>o.classList.remove("open"),360);
+}
+document.querySelectorAll(".palette-overlay,.dialog-overlay").forEach(o=>{
+  o.addEventListener("click",e=>{ if(e.target===o) closeOverlay("#"+o.id); });
+});
+
+/* command palette */
+let palSel = 0;
+function renderPalette(){
+  const q = $("#paletteInput").value.trim().toLowerCase();
+  const list = PRODUCTS.filter(p=>!q||p.n.toLowerCase().includes(q)).slice(0,7);
+  $("#paletteResults").innerHTML = list.map((p,i)=>{
+    const cat = CATS[p.c];
+    return `<button class="palette-row ${i===palSel?"sel":""}" data-pid="${p.id}">
+      <div class="palette-thumb">${IMGS[p.id]?`<img src="${IMGS[p.id]}" alt="">`:`<span>${p.n[0]}</span>`}</div>
+      <span class="palette-row-name">${p.n}</span>
+      <span class="palette-row-price">from ${money(Math.min(...p.s.map(s=>s[2])))}</span>
+    </button>`;
+  }).join("")||`<div style="padding:22px;text-align:center;color:var(--faint);font-size:13px;font-weight:600">No products found</div>`;
+}
+function openPalette(){
+  palSel = 0;
+  openOverlay("#paletteOverlay");
+  $("#paletteInput").value=""; renderPalette();
+  setTimeout(()=>$("#paletteInput").focus(),60);
+}
+$("#paletteInput").addEventListener("input",()=>{ palSel=0; renderPalette(); });
+$("#paletteInput").addEventListener("keydown",e=>{
+  const rows = document.querySelectorAll(".palette-row");
+  if(e.key==="ArrowDown"){ e.preventDefault(); palSel=Math.min(rows.length-1,palSel+1); renderPalette(); }
+  if(e.key==="ArrowUp"){ e.preventDefault(); palSel=Math.max(0,palSel-1); renderPalette(); }
+  if(e.key==="Enter"){
+    const r = document.querySelectorAll(".palette-row")[palSel];
+    if(r){ addToCart(r.dataset.pid,0); closeOverlay("#paletteOverlay"); }
+  }
+});
+$("#paletteResults").addEventListener("click",e=>{
+  const r = e.target.closest(".palette-row"); if(!r) return;
+  addToCart(r.dataset.pid,0); closeOverlay("#paletteOverlay");
+});
+
+/* global keys */
+document.addEventListener("keydown",e=>{
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)||document.activeElement.isContentEditable;
+  if(e.key==="/" && !typing){ e.preventDefault(); $("#searchIn").focus(); }
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); openPalette(); }
+  if(e.key==="Escape"){ closeOverlay("#paletteOverlay"); closeOverlay("#chargeDialog"); }
+});
+
+/* mobile bottom-sheet toggle */
+$("#planHead").addEventListener("click",()=>{
+  if(matchMedia("(max-width:1020px)").matches) $("#planPanel").classList.toggle("expanded");
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderCats();
+renderGrid();
+renderPlan();
+syncButtons();
+observeReveals();
+// seed session log from source system
+(function(){
+  const li = document.createElement("div");
+  li.className = "log-item warn";
+  li.innerHTML = `<span class="log-text">No-show marked</span><span class="log-time">Jul 3 · 4:51 PM</span>`;
+  $("#logList").appendChild(li);
+  const li2 = document.createElement("div");
+  li2.className = "log-item";
+  li2.innerHTML = `<span class="log-text">Consultation registered — booked via web</span><span class="log-time">Jul 3 · 4:02 PM</span>`;
+  $("#logList").appendChild(li2);
+})();
+
+/* ============================================================
+   CURSOR-AWARE AMBIENT GLOW
+   One soft radial that lazily trails the pointer; its hue
+   matches the zone under the cursor so the tint doubles as a
+   "you are here" cue. Transform-only movement (GPU-cheap);
+   the gradient string is only rebuilt while the hue is lerping.
+   ============================================================ */
+(function(){
+  if(prefersReduced || matchMedia("(hover:none)").matches) return;
+  const glow = $("#glow"), R = 620, ALPHA = .17;
+  // zone → hue (rgb)
+  const ZONES = [
+    [".hero",        [15,122,84]],   // patient — green
+    [".snapshot",    [13,148,136]],  // vitals — teal
+    [".cond-strip",  [13,148,136]],
+    [".records",     [124,111,208]], // records — violet
+    [".catalog-toolbar",[91,158,125]], // formulary — sage
+    ["#productGrid", [91,158,125]],
+    [".plan",        [15,122,84]],   // plan — green
+    ["#chargeBtn",   [200,116,44]],  // money moment — amber
+    ["#endBtn",      [176,67,56]],   // destructive — red
+  ];
+  const DEFAULT = [15,122,84];
+  let x=innerWidth/2, y=180, tx=x, ty=y;
+  let c=DEFAULT.slice(), tc=DEFAULT.slice();
+  addEventListener("pointermove",e=>{ tx=e.clientX; ty=e.clientY; },{passive:true});
+  ZONES.forEach(([sel,rgb])=>{
+    document.querySelectorAll(sel).forEach(el=>{
+      el.addEventListener("pointerenter",()=>{ tc=rgb; },{passive:true});
+    });
+  });
+  document.body.addEventListener("pointerleave",()=>{ tc=DEFAULT; });
+  function paint(){
+    glow.style.background =
+      `radial-gradient(circle, rgba(${c[0]|0},${c[1]|0},${c[2]|0},${ALPHA}) 0%, rgba(${c[0]|0},${c[1]|0},${c[2]|0},0) 62%)`;
+  }
+  paint();
+  (function loop(){
+    x += (tx-x)*.07; y += (ty-y)*.07;
+    glow.style.transform = `translate(${(x-R).toFixed(1)}px,${(y-R).toFixed(1)}px)`;
+    const d = Math.abs(tc[0]-c[0])+Math.abs(tc[1]-c[1])+Math.abs(tc[2]-c[2]);
+    if(d>1){ for(let i=0;i<3;i++) c[i]+=(tc[i]-c[i])*.05; paint(); }
+    requestAnimationFrame(loop);
+  })();
+  // product grid re-renders lose their listener targets — re-bind via delegation
+  $("#productGrid").addEventListener("pointerenter",()=>{ tc=[91,158,125]; },{passive:true});
+})();
+</script>
+</body>
+</html>
