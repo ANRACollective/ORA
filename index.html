@@ -16,8 +16,8 @@
   --subtle:#F6F7F6;
   --subtle-2:#FBFCFB;
   --text:#17201B;
-  --muted:#68726C;
-  --faint:#98A19B;
+  --muted:#4E5952;
+  --faint:#77817A;
   --line:#E5E7E5;
   --line-strong:#D3D7D3;
   --green:#0F7A54;
@@ -121,7 +121,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .shell{
   max-width:1480px;margin:0 auto;
   padding:80px clamp(16px,2.4vw,32px) 56px;
-  display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:28px;
+  display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:28px;
   align-items:start;
 }
 .main-col{min-width:0;display:flex;flex-direction:column;gap:24px}
@@ -143,7 +143,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 }
 .patient-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .patient-name{
-  font-weight:700;font-size:24px;line-height:1.2;color:var(--text);letter-spacing:-.015em;
+  font-weight:700;font-size:28px;line-height:1.2;color:var(--text);letter-spacing:-.015em;
   border-bottom:1.5px dashed transparent;
 }
 .patient-name[contenteditable="true"]{border-bottom-color:var(--green);outline:none}
@@ -419,7 +419,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 }
 .plan-head{padding:18px 18px 0}
 .plan-head-row{display:flex;align-items:center;justify-content:space-between}
-.plan-title{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.plan-title{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.01em}
 .plan-count{
   font-family:var(--font-mono);font-size:11px;color:var(--muted);
   background:var(--subtle);border:1px solid var(--line);
@@ -483,7 +483,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 }
 .total-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
 .total-row .lbl{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
-.total-val{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--text)}
+.total-val{font-family:var(--font-mono);font-size:26px;font-weight:700;color:var(--text)}
 .total-val .cur{font-size:13px;color:var(--muted);margin-right:2px}
 .action-btn{
   width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
@@ -620,7 +620,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
    RESPONSIVE
    ============================================================ */
 @media (max-width:1180px){
-  .shell{grid-template-columns:minmax(0,1fr) 336px}
+  .shell{grid-template-columns:minmax(0,1fr) 384px}
   .snapshot{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:1020px){
@@ -680,11 +680,11 @@ body{background:#FBFBFA}
 /* ============================================================
    SECTION HUES — quiet tints matching the glow zone colours
    ============================================================ */
-.hero{background:#F7FBF9;border-color:#DDE9E2}
+.hero{background:#F2F9F5;border-color:#BFDACB;border-top:3px solid var(--green);box-shadow:0 2px 12px rgba(15,122,84,.08)}
 .vital-card,.cond-strip{background:#F5FAF9;border-color:#DCE8E6}
 .vital-card:hover{border-color:#C8DBD8}
 .record-card{background:#F9F8FC;border-color:#E4E1F0}
-.plan{background:#F8FBF9;border-color:#DCE7E0}
+.plan{background:#F4FAF7;border-color:#BFDACB;border-top:3px solid var(--green);box-shadow:0 4px 22px rgba(15,122,84,.10)}
 .plan-item{background:#FFFFFF}
 .plan-note textarea{background:#FFFFFF}
 .plan-empty{background:rgba(255,255,255,.5)}
@@ -707,6 +707,65 @@ body{background:#FBFBFA}
 .p-card.cat-admin:hover{border-color:#D0D4D0}
 /* category pills pick up their swatch again */
 .cat-pill .swatch{display:inline-block;width:8px;height:8px;border-radius:50%}
+
+
+/* ============================================================
+   TREATMENT PLAN — DARK ANCHOR (v3.3)
+   The action surface: dark clinical green so it stands apart
+   from the light review canvas. Bigger type throughout.
+   ============================================================ */
+.plan{
+  background:#0F211A;
+  border:1px solid #1E3A2E;border-top:3px solid #3FBF8C;
+  box-shadow:0 10px 34px rgba(9,26,19,.30);
+  color:#DCE9DF;
+}
+.plan-head{padding:22px 22px 0}
+.plan-title{font-size:19px;color:#FFFFFF}
+.plan-count{background:rgba(120,205,165,.12);border-color:rgba(120,205,165,.3);color:#8FDDB6}
+.plan-step .bar{background:rgba(220,233,223,.15)}
+.plan-step .bar::after{background:#57C795}
+.plan-step small{color:rgba(220,233,223,.45);font-size:9.5px}
+.plan-step.done small{color:#8FDDB6}
+.plan-body{padding:16px 22px;scrollbar-color:rgba(120,205,165,.3) transparent}
+.plan-empty{border-color:rgba(220,233,223,.25);background:rgba(255,255,255,.03)}
+.plan-empty p{color:rgba(220,233,223,.6);font-size:13px}
+.plan-item{background:#182E24;border-color:rgba(120,205,165,.14);padding:12px 14px}
+.plan-item:hover{border-color:rgba(120,205,165,.35)}
+.plan-item-name{font-size:13.5px;color:#FFFFFF}
+.plan-item-cad{color:rgba(220,233,223,.55);font-size:10.5px}
+.qty-btn{background:rgba(220,233,223,.1);border-color:transparent;color:rgba(220,233,223,.8)}
+.qty-btn:hover{background:#57C795;color:#0F211A;border-color:transparent}
+.qty-n{color:#FFFFFF;font-size:13px}
+.plan-item-price{color:#8FDDB6;font-size:13px}
+.plan-note textarea{background:rgba(255,255,255,.05);border-color:rgba(220,233,223,.16);color:#E7F1EA;font-size:12.5px}
+.plan-note textarea::placeholder{color:rgba(220,233,223,.4)}
+.plan-note textarea:focus{border-color:#57C795;background:rgba(255,255,255,.07)}
+.plan-foot{border-top:1px solid rgba(220,233,223,.12);padding:15px 22px 18px}
+.total-row .lbl{color:rgba(220,233,223,.55)}
+.total-val{font-size:30px;color:#FFFFFF}
+.total-val .cur{color:#8FDDB6;font-size:15px}
+.action-btn{padding:13px 16px;font-size:13.5px}
+.btn-create{background:#57C795;color:#0A1811}
+.btn-create:not(:disabled):hover{background:#6BD5A5}
+.btn-create.created{background:rgba(120,205,165,.14);color:#8FDDB6;border-color:rgba(120,205,165,.4)}
+.btn-charge{background:#D98A3D;color:#221204;border-color:transparent}
+.btn-charge:not(:disabled):hover{background:#E69A4E}
+.btn-notify{background:transparent;color:#DCE9DF;border-color:rgba(220,233,223,.28)}
+.btn-notify:not(:disabled):hover{border-color:#8FDDB6;color:#8FDDB6;background:transparent}
+.btn-call{background:rgba(78,180,170,.14);color:#7ED0C8;border-color:rgba(78,180,170,.3);font-size:12px}
+.btn-call:not(:disabled):hover{background:rgba(78,180,170,.24);border-color:rgba(78,180,170,.5)}
+.btn-end{background:rgba(200,90,78,.13);color:#F0A399;border-color:rgba(200,90,78,.35);font-size:12px}
+.btn-end .hold-ring{background:rgba(200,90,78,.5)}
+.btn-end:not(:disabled):hover{background:rgba(200,90,78,.22)}
+.log-title{color:rgba(220,233,223,.45)}
+.log-text{color:rgba(220,233,223,.8)}
+.log-time{color:rgba(220,233,223,.42)}
+.log-item::after{background:rgba(220,233,223,.15)}
+.log-item::before{background:#57C795}
+.log-item.warn::before{background:#D98A3D}
+.log-item.danger::before{background:#F0A399}
+.plan-grab{background:rgba(220,233,223,.3)}
 
 </style>
 </head>
@@ -1547,7 +1606,7 @@ observeReveals();
    ============================================================ */
 (function(){
   if(prefersReduced || matchMedia("(hover:none)").matches) return;
-  const glow = $("#glow"), R = 620, ALPHA = .17;
+  const glow = $("#glow"), R = 620, ALPHA = .26;
   // zone → hue (rgb)
   const ZONES = [
     [".hero",        [15,122,84]],   // patient — green
