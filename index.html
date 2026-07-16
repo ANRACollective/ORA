@@ -16,8 +16,8 @@
   --subtle:#F6F7F6;
   --subtle-2:#FBFCFB;
   --text:#101915;
-  --muted:#414C45;
-  --faint:#69746D;
+  --muted:#333D37;
+  --faint:#59645D;
   --line:#DFE2DF;
   --line-strong:#C6CBC6;
   --green:#12735A;
@@ -368,7 +368,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
   padding:2px 7px;border-radius:5px;
   background:var(--text);color:#fff;
 }
-.p-desc{font-size:12.5px;color:var(--muted);line-height:1.5}
+.p-desc{font-size:12.5px;color:#18231D;line-height:1.5;font-weight:500}
 .p-details{border-top:1px solid var(--line);padding-top:8px;margin-top:auto}
 .p-details summary{
   list-style:none;cursor:pointer;display:flex;align-items:center;gap:5px;
@@ -379,7 +379,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .p-details summary:hover{color:var(--green)}
 .p-details summary svg{width:10px;height:10px;transition:transform .25s var(--ease)}
 .p-details[open] summary svg{transform:rotate(180deg)}
-.p-details-body{font-size:12px;color:var(--muted);padding-top:7px;line-height:1.55}
+.p-details-body{font-size:12px;color:#222D26;padding-top:7px;line-height:1.55}
 .p-details-body b{color:var(--text);font-weight:600}
 .sku-list{display:flex;flex-direction:column;gap:5px}
 .sku-row{
@@ -804,6 +804,37 @@ body{background:#FBFBFA}
 .plan .log-item::before{background:#2C5478}
 .plan .log-item.warn::before{background:var(--amber)}
 .plan .log-item.danger::before{background:var(--red)}
+
+/* ============================================================
+   v3.8 — CADENCE SELECTOR (replaces per-SKU row stack)
+   One picker + one price + one Add per product. Calm.
+   ============================================================ */
+.sku-list{gap:9px}
+.cad-seg{display:flex;flex-wrap:wrap;gap:4px}
+.cad-opt{
+  padding:5px 11px;border-radius:100px;
+  border:1px solid var(--line);background:#FFFFFF;
+  font-size:11.5px;font-weight:600;color:var(--muted);
+  transition:all .18s var(--ease);
+}
+.cad-opt:hover{border-color:var(--green)}
+.cad-opt.on{background:var(--green);border-color:var(--green);color:#fff}
+.cad-opt:disabled{opacity:.45;cursor:not-allowed}
+.buy-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.buy-info{min-width:0}
+.buy-price{font-family:var(--font-mono);font-size:16.5px;font-weight:700;color:var(--text);display:block;line-height:1.2}
+.buy-code{font-family:var(--font-mono);font-size:9px;color:var(--faint);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.add-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;padding:0;
+  background:var(--green-soft);color:var(--green-dark);
+  border:1px solid rgba(18,115,90,.22);
+  transition:all .2s var(--ease);flex:0 0 auto;
+}
+.add-btn svg{width:15px;height:15px}
+.add-btn:not(:disabled):hover{background:var(--green);color:#fff;border-color:var(--green);transform:translateY(-1px) scale(1.06);box-shadow:0 5px 14px rgba(18,115,90,.3)}
+.add-btn:disabled{opacity:.45;cursor:not-allowed}
+
 </style>
 </head>
 <body>
@@ -1163,6 +1194,7 @@ const PRODUCTS = [
    ============================================================ */
 const state = {
   cart:[],            // {pid, skuIdx, qty}
+  selCad:{},          // pid -> selected cadence index
   planCreated:false,
   charged:false,
   notified:false,
@@ -1176,6 +1208,10 @@ const $ = s=>document.querySelector(s);
 const money = v=>"S$"+v.toFixed(2);
 const now = ()=>new Date().toLocaleTimeString("en-SG",{hour:"numeric",minute:"2-digit",hour12:true});
 const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function shortCad(label){
+  return label.replace("subscription","").replace("One-time purchase","One-time")
+              .replace("-month ","-mo ").replace(" · 3 units"," ×3").replace(" · 2 units"," ×2").replace(" · 1 unit","").trim();
+}
 
 /* ============================================================
    RENDER — category rail + formulary grid
@@ -1192,17 +1228,20 @@ function renderCats(){
 }
 function cardHTML(p){
   const inCart = state.cart.filter(i=>i.pid===p.id).reduce((a,i)=>a+i.qty,0);
-  const skus = p.s.map((s,i)=>`
-    <button class="sku-row" data-pid="${p.id}" data-sku="${i}" ${state.ended?"disabled":""}>
-      <span class="sku-info">
-        <span class="sku-cad">${s[0]}</span>
-        <span class="sku-code" style="display:block">${s[1]}</span>
+  const sel = state.selCad[p.id] || 0;
+  const cur = p.s[sel];
+  const seg = p.s.length > 1 ? `<div class="cad-seg">${p.s.map((sk,i)=>
+    `<button class="cad-opt ${i===sel?"on":""}" data-pid="${p.id}" data-i="${i}" ${state.ended?"disabled":""}>${shortCad(sk[0])}</button>`).join("")}</div>` : "";
+  const skus = `${seg}
+    <div class="buy-row">
+      <span class="buy-info">
+        <span class="buy-price">${money(cur[2])}</span>
+        <span class="buy-code">${p.s.length===1?shortCad(cur[0])+" · ":""}${cur[1]}</span>
       </span>
-      <span class="sku-right">
-        <span class="sku-price">${money(s[2])}</span>
-        <span class="sku-add">+</span>
-      </span>
-    </button>`).join("");
+      <button class="add-btn" data-pid="${p.id}" data-sku="${sel}" aria-label="Add ${p.n} — ${cur[0]}" title="Add to plan" ${state.ended?"disabled":""}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>`;
   const details = (p.ins&&p.ins!=="—")?`
     <details class="p-details">
       <summary>Clinical notes <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></summary>
@@ -1391,8 +1430,10 @@ $("#typeSeg").addEventListener("click",e=>{
 });
 $("#searchIn").addEventListener("input",e=>{ state.query = e.target.value; renderGrid(); });
 $("#productGrid").addEventListener("click",e=>{
-  const row = e.target.closest(".sku-row"); if(!row) return;
-  addToCart(row.dataset.pid,+row.dataset.sku,row);
+  const opt = e.target.closest(".cad-opt");
+  if(opt){ state.selCad[opt.dataset.pid] = +opt.dataset.i; renderGrid(); return; }
+  const add = e.target.closest(".add-btn");
+  if(add){ addToCart(add.dataset.pid,+add.dataset.sku,add); }
 });
 $("#planBody").addEventListener("click",e=>{
   const q = e.target.closest(".qty-btn"); if(!q) return;
@@ -1549,7 +1590,7 @@ function endConsult(){
   logEvent(`Consultation ended${note&&!state.planCreated?` — "${note}"`:""}`,"danger");
   toast("Consultation closed","red");
   endBtn.querySelector("span").textContent = "Consultation ended";
-  document.querySelectorAll(".sku-row").forEach(b=>b.disabled=true);
+  document.querySelectorAll(".add-btn,.cad-opt").forEach(b=>b.disabled=true);
   syncButtons();
 }
 
