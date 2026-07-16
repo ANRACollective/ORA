@@ -15,15 +15,15 @@
   --bg:#FFFFFF;
   --subtle:#F6F7F6;
   --subtle-2:#FBFCFB;
-  --text:#17201B;
-  --muted:#4E5952;
-  --faint:#77817A;
-  --line:#E5E7E5;
-  --line-strong:#D3D7D3;
-  --green:#0F7A54;
-  --green-dark:#0B5F41;
-  --green-soft:#EDF5F1;
-  --amber:#B96F24;
+  --text:#101915;
+  --muted:#414C45;
+  --faint:#69746D;
+  --line:#DFE2DF;
+  --line-strong:#C6CBC6;
+  --green:#12735A;
+  --green-dark:#0C5945;
+  --green-soft:#E7F8EF;
+  --amber:#B47B33;
   --amber-soft:#FBF3E8;
   --red:#B04338;
   --red-soft:#FAEDEB;
@@ -329,7 +329,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
   transition:all .2s var(--ease);
 }
 .seg button.on{background:var(--bg);color:var(--text);box-shadow:0 1px 2px rgba(23,32,27,.08)}
-.cat-rail{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.cat-rail{display:flex;flex-wrap:wrap;gap:6px;overflow:visible;padding-bottom:1px}
 .cat-rail::-webkit-scrollbar{display:none}
 .cat-pill{
   display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;
@@ -680,10 +680,10 @@ body{background:#FBFBFA}
 /* ============================================================
    SECTION HUES — quiet tints matching the glow zone colours
    ============================================================ */
-.hero{background:#F2F9F5;border-color:#BFDACB;border-top:3px solid var(--green);box-shadow:0 2px 12px rgba(15,122,84,.08)}
-.vital-card,.cond-strip{background:#F5FAF9;border-color:#DCE8E6}
+.hero{background:#ECF8F1;border-color:#A9D4BC;box-shadow:0 2px 12px rgba(15,122,84,.08)}
+.vital-card,.cond-strip{background:#EFF6F5;border-color:#CBDDDA}
 .vital-card:hover{border-color:#C8DBD8}
-.record-card{background:#F9F8FC;border-color:#E4E1F0}
+.record-card{background:#F4F2FA;border-color:#D6D1E8}
 .plan{background:#F4FAF7;border-color:#BFDACB;border-top:3px solid var(--green);box-shadow:0 4px 22px rgba(15,122,84,.10)}
 .plan-item{background:#FFFFFF}
 .plan-note textarea{background:#FFFFFF}
@@ -691,17 +691,17 @@ body{background:#FBFBFA}
 .sku-row{background:#FFFFFF}
 .p-thumb{background:#FFFFFF}
 /* formulary cards tinted by category */
-.p-card.cat-bc{background:#FCF6F8;border-color:#F0E2E8}
+.p-card.cat-bc{background:#FAF0F3;border-color:#E7D3DB}
 .p-card.cat-bc:hover{border-color:#E3CCD5}
-.p-card.cat-ec{background:#FDF8F1;border-color:#F1E4D2}
+.p-card.cat-ec{background:#FBF3E7;border-color:#E8D6BC}
 .p-card.cat-ec:hover{border-color:#E5D2B5}
-.p-card.cat-wl{background:#F4F8FA;border-color:#DEE9EE}
+.p-card.cat-wl{background:#EDF4F7;border-color:#CEDFE6}
 .p-card.cat-wl:hover{border-color:#C8DBE4}
-.p-card.cat-supp{background:#F6FAF5;border-color:#E0EBDE}
+.p-card.cat-supp{background:#F0F7EF;border-color:#D1E2CE}
 .p-card.cat-supp:hover{border-color:#CCDFC9}
-.p-card.cat-gen{background:#F8F7FC;border-color:#E5E1F1}
+.p-card.cat-gen{background:#F2F0F9;border-color:#D8D2EA}
 .p-card.cat-gen:hover{border-color:#D3CDE7}
-.p-card.cat-retail{background:#FBFAF2;border-color:#EBE7D3}
+.p-card.cat-retail{background:#F7F5E9;border-color:#E0DABE}
 .p-card.cat-retail:hover{border-color:#DDD7B8}
 .p-card.cat-admin{background:#F7F8F7;border-color:#E3E5E3}
 .p-card.cat-admin:hover{border-color:#D0D4D0}
@@ -709,64 +709,101 @@ body{background:#FBFBFA}
 .cat-pill .swatch{display:inline-block;width:8px;height:8px;border-radius:50%}
 
 
+
+
+/* v3.4 — global scale-up; glow layer excluded to keep pointer mapping 1:1 */
+.topbar,.shell,.toast-root,.palette-overlay,.dialog-overlay{zoom:1.07}
+
+
 /* ============================================================
-   TREATMENT PLAN — DARK ANCHOR (v3.3)
-   The action surface: dark clinical green so it stands apart
-   from the light review canvas. Bigger type throughout.
+   TREATMENT PLAN — LIGHT SAGE (v3.6)
+   Friendly light-green action panel: distinct from the white
+   canvas, dark readable text, buttons carry the emphasis.
    ============================================================ */
 .plan{
-  background:#0F211A;
-  border:1px solid #1E3A2E;border-top:3px solid #3FBF8C;
-  box-shadow:0 10px 34px rgba(9,26,19,.30);
-  color:#DCE9DF;
+  background:#EDF3F8;
+  border:1px solid #C5D6E4;
+  box-shadow:0 6px 24px rgba(44,84,120,.10);
+  color:var(--text);
 }
 .plan-head{padding:22px 22px 0}
-.plan-title{font-size:19px;color:#FFFFFF}
-.plan-count{background:rgba(120,205,165,.12);border-color:rgba(120,205,165,.3);color:#8FDDB6}
-.plan-step .bar{background:rgba(220,233,223,.15)}
-.plan-step .bar::after{background:#57C795}
-.plan-step small{color:rgba(220,233,223,.45);font-size:9.5px}
-.plan-step.done small{color:#8FDDB6}
-.plan-body{padding:16px 22px;scrollbar-color:rgba(120,205,165,.3) transparent}
-.plan-empty{border-color:rgba(220,233,223,.25);background:rgba(255,255,255,.03)}
-.plan-empty p{color:rgba(220,233,223,.6);font-size:13px}
-.plan-item{background:#182E24;border-color:rgba(120,205,165,.14);padding:12px 14px}
-.plan-item:hover{border-color:rgba(120,205,165,.35)}
-.plan-item-name{font-size:13.5px;color:#FFFFFF}
-.plan-item-cad{color:rgba(220,233,223,.55);font-size:10.5px}
-.qty-btn{background:rgba(220,233,223,.1);border-color:transparent;color:rgba(220,233,223,.8)}
-.qty-btn:hover{background:#57C795;color:#0F211A;border-color:transparent}
-.qty-n{color:#FFFFFF;font-size:13px}
-.plan-item-price{color:#8FDDB6;font-size:13px}
-.plan-note textarea{background:rgba(255,255,255,.05);border-color:rgba(220,233,223,.16);color:#E7F1EA;font-size:12.5px}
-.plan-note textarea::placeholder{color:rgba(220,233,223,.4)}
-.plan-note textarea:focus{border-color:#57C795;background:rgba(255,255,255,.07)}
-.plan-foot{border-top:1px solid rgba(220,233,223,.12);padding:15px 22px 18px}
-.total-row .lbl{color:rgba(220,233,223,.55)}
-.total-val{font-size:30px;color:#FFFFFF}
-.total-val .cur{color:#8FDDB6;font-size:15px}
+.plan-title{font-size:19px;color:var(--text)}
+.plan-count{background:#FFFFFF;border-color:#C5D6E4;color:#2C5478}
+.plan-step .bar{background:rgba(44,84,120,.16)}
+.plan-step .bar::after{background:#2C5478}
+.plan-step small{color:#5B6C7B;font-size:9.5px}
+.plan-step.done small{color:#2C5478}
+.plan-body{padding:16px 22px}
+.plan-empty{border-color:#A9C2D6;background:rgba(255,255,255,.55)}
+.plan-empty p{color:#5B6C7B;font-size:13px}
+.plan-item{background:#FFFFFF;border-color:#D4E0EA;padding:12px 14px}
+.plan-item:hover{border-color:#2C5478}
+.plan-item-name{font-size:13.5px;color:var(--text)}
+.plan-item-cad{color:var(--muted);font-size:10.5px}
+.qty-btn{background:#EFF4F8;border-color:#D4E0EA;color:var(--muted)}
+.qty-btn:hover{background:#2C5478;color:#fff;border-color:#2C5478}
+.qty-n{color:var(--text);font-size:13px}
+.plan-item-price{color:#2C5478;font-size:13px;font-weight:700}
+.plan-note textarea{background:#FFFFFF;border-color:#D4E0EA;color:var(--text);font-size:12.5px}
+.plan-note textarea::placeholder{color:#8A968E}
+.plan-note textarea:focus{border-color:#2C5478}
+.plan-foot{border-top:1px solid #CBD9E5;padding:15px 22px 18px;background:rgba(255,255,255,.4)}
+.total-row .lbl{color:#5B6C7B}
+.total-val{font-size:30px;color:var(--text)}
+.total-val .cur{color:#2C5478;font-size:15px}
 .action-btn{padding:13px 16px;font-size:13.5px}
-.btn-create{background:#57C795;color:#0A1811}
-.btn-create:not(:disabled):hover{background:#6BD5A5}
-.btn-create.created{background:rgba(120,205,165,.14);color:#8FDDB6;border-color:rgba(120,205,165,.4)}
-.btn-charge{background:#D98A3D;color:#221204;border-color:transparent}
-.btn-charge:not(:disabled):hover{background:#E69A4E}
-.btn-notify{background:transparent;color:#DCE9DF;border-color:rgba(220,233,223,.28)}
-.btn-notify:not(:disabled):hover{border-color:#8FDDB6;color:#8FDDB6;background:transparent}
-.btn-call{background:rgba(78,180,170,.14);color:#7ED0C8;border-color:rgba(78,180,170,.3);font-size:12px}
-.btn-call:not(:disabled):hover{background:rgba(78,180,170,.24);border-color:rgba(78,180,170,.5)}
-.btn-end{background:rgba(200,90,78,.13);color:#F0A399;border-color:rgba(200,90,78,.35);font-size:12px}
-.btn-end .hold-ring{background:rgba(200,90,78,.5)}
-.btn-end:not(:disabled):hover{background:rgba(200,90,78,.22)}
-.log-title{color:rgba(220,233,223,.45)}
-.log-text{color:rgba(220,233,223,.8)}
-.log-time{color:rgba(220,233,223,.42)}
-.log-item::after{background:rgba(220,233,223,.15)}
-.log-item::before{background:#57C795}
-.log-item.warn::before{background:#D98A3D}
-.log-item.danger::before{background:#F0A399}
-.plan-grab{background:rgba(220,233,223,.3)}
+.btn-create{background:var(--green);color:#fff}
+.btn-create:not(:disabled):hover{background:var(--green-dark)}
+.btn-create.created{background:#FFFFFF;color:#2C5478;border-color:#C5D6E4}
+.btn-charge{background:#B47B33;color:#fff;border-color:transparent}
+.btn-charge:not(:disabled):hover{background:#A46C28}
+.btn-notify{background:#FFFFFF;color:var(--text);border-color:#C5D6E4}
+.btn-notify:not(:disabled):hover{border-color:#2C5478;color:#2C5478}
+.btn-call{background:#FFFFFF;color:#2C5478;border-color:#C5D6E4;font-size:12px}
+.btn-call:not(:disabled):hover{border-color:#2C5478;background:#F3F8FC}
+.btn-end{background:#FFFFFF;color:var(--red);border-color:#E8CFCA;font-size:12px}
+.btn-end .hold-ring{background:var(--red-soft)}
+.btn-end:not(:disabled):hover{background:var(--red-soft)}
+.log-title{color:#5B6C7B}
+.log-text{color:var(--muted)}
+.log-time{color:#7A867E}
+.log-item::after{background:#CBD9E5}
+.plan-grab{background:#A9C2D6}
 
+
+/* ============================================================
+   LIFE PASS (v3.6) — living gradient bars, hover response,
+   breathing status. All disabled under prefers-reduced-motion.
+   ============================================================ */
+@keyframes barShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.hero,.plan{position:relative}
+.hero::before,.plan::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;z-index:2;
+  background:linear-gradient(90deg,var(--green),#2E9678);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;
+}
+.status-pill .dot{animation:pulse 3.2s ease-in-out infinite}
+.p-card,.vital-card,.record-card{transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .2s var(--ease)}
+.p-card:hover,.vital-card:hover,.record-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(16,25,21,.08)}
+.ghost-btn:hover,.mini-btn:hover,.cat-pill:hover{transform:translateY(-1px)}
+.action-btn:not(:disabled):hover{transform:translateY(-1px)}
+.sku-row:hover{transform:translateX(3px)}
+.btn-create{background:#2C5478}
+.btn-create:not(:disabled):hover{background:#234563;box-shadow:0 6px 16px rgba(44,84,120,.28)}
+.btn-charge{background:#B47B33}
+.btn-charge:not(:disabled):hover{background:#A46C28;box-shadow:0 6px 16px rgba(180,123,51,.28)}
+.in-plan-badge{background:var(--green)}
+@media (prefers-reduced-motion:reduce){
+  .hero::before,.plan::before,.status-pill .dot{animation:none}
+  .p-card:hover,.vital-card:hover,.record-card:hover,.sku-row:hover,.ghost-btn:hover,.mini-btn:hover,.cat-pill:hover,.action-btn:not(:disabled):hover{transform:none}
+}
+
+
+/* v3.7 — plan panel recoloured slate-blue (counterpoint to green canvas) */
+.plan::before{background:linear-gradient(90deg,#2C5478,#4A7DA3)}
+.plan .log-item::before{background:#2C5478}
+.plan .log-item.warn::before{background:var(--amber)}
+.plan .log-item.danger::before{background:var(--red)}
 </style>
 </head>
 <body>
@@ -1615,7 +1652,7 @@ observeReveals();
     [".records",     [124,111,208]], // records — violet
     [".catalog-toolbar",[91,158,125]], // formulary — sage
     ["#productGrid", [91,158,125]],
-    [".plan",        [15,122,84]],   // plan — green
+    [".plan",        [44,84,120]],   // plan — slate blue
     ["#chargeBtn",   [200,116,44]],  // money moment — amber
     ["#endBtn",      [176,67,56]],   // destructive — red
   ];
