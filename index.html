@@ -682,12 +682,18 @@ body{background:#FBFBFA}
 /* product thumbnails (extracted from source PDF) */
 .p-title-wrap{display:block}
 .p-thumb{
-  width:46px;height:46px;border-radius:9px;flex:0 0 auto;
+  width:70px;height:70px;border-radius:12px;flex:0 0 auto;
   border:1px solid var(--line);background:#fff;
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:visible;
 }
-.p-thumb img{width:100%;height:100%;object-fit:contain}
-.p-thumb span{font-size:15px;font-weight:600;color:var(--faint)}
+.p-thumb img{width:100%;height:100%;object-fit:contain;border-radius:inherit}
+.p-thumb .init{font-size:22px;font-weight:600;color:var(--faint)}
+.p-thumb .type-badge{
+  position:absolute;top:-7px;right:-7px;
+  font-size:9px;padding:1.5px 6px;border-radius:6px;
+  border:1.5px solid var(--bg);box-shadow:0 1px 4px rgba(16,25,21,.14);
+}
 .palette-thumb{
   width:32px;height:32px;border-radius:7px;flex:0 0 auto;
   border:1px solid var(--line);background:#fff;
@@ -1286,11 +1292,10 @@ function cardHTML(p){
     </details>`;
   return `<article class="p-card reveal cat-${p.c}" data-id="${p.id}">
     <div class="p-head">
-      <div class="p-thumb">${IMGS[p.id]?`<img src="${IMGS[p.id]}" alt="${p.n}" loading="lazy">`:`<span>${p.n[0]}</span>`}</div>
+      <div class="p-thumb">${IMGS[p.id]?`<img src="${IMGS[p.id]}" alt="${p.n}" loading="lazy">`:`<span class="init">${p.n[0]}</span>`}<span class="type-badge ${p.t==="Rx"?"rx":"nrx"}">${p.t}</span></div>
       <div class="p-title-wrap">
         <h3 class="p-name">${p.n}</h3>
         <div class="p-badges">
-          <span class="type-badge ${p.t==="Rx"?"rx":"nrx"}">${p.t}</span>
           <span class="sku-badge">${cur[1]}</span>
           ${inCart?`<span class="in-plan-badge">In plan ·${inCart}</span>`:""}
         </div>
