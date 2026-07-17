@@ -200,6 +200,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 }
 .section-label h2{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
 .section-label .hint{font-size:11.5px;color:var(--faint);font-weight:500}
+/* collapsible section (Clinical snapshot) */
+.sec-details summary{list-style:none;cursor:pointer;user-select:none}
+.sec-details summary::-webkit-details-marker{display:none}
+.sec-details .section-label{margin:2px 2px 0}
+.sec-details .sec-chev{width:12px;height:12px;color:var(--faint);display:inline-block;vertical-align:-1px;margin-left:5px;transition:transform .25s var(--ease)}
+.sec-details[open] .sec-chev{transform:rotate(180deg)}
+.sec-details summary:hover h2,.sec-details summary:hover .sec-chev{color:var(--green-dark)}
+.sec-details .snapshot{margin-top:16px}
 .snapshot{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .vital-card{
   background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);
@@ -933,11 +941,14 @@ body{background:#FBFBFA}
     </section>
 
     <!-- ================= CLINICAL SNAPSHOT ================= -->
-    <div class="section-label reveal">
-      <h2>Clinical snapshot</h2>
-      <span class="hint">Biometrics auto-save · BMI computed live</span>
-    </div>
-    <section class="snapshot reveal" aria-label="Patient biometrics">
+    <details class="sec-details reveal" open>
+      <summary>
+        <div class="section-label">
+          <h2>Clinical snapshot <svg class="sec-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></h2>
+          <span class="hint">Biometrics auto-save · BMI computed live</span>
+        </div>
+      </summary>
+    <section class="snapshot" aria-label="Patient biometrics">
       <div class="vital-card">
         <div class="vital-label">Height</div>
         <div class="vital-input-row">
@@ -980,6 +991,7 @@ body{background:#FBFBFA}
         </button>
       </div>
     </section>
+    </details>
 
     <!-- ================= RECORDS ================= -->
     <section class="records reveal" aria-label="Certificates and prescriptions">
